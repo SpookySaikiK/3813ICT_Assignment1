@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-register',
@@ -13,12 +14,17 @@ export class RegisterComponent implements OnInit {
   username: string = '';
   email: string = '';
   password: string = '';
-
   users: any[] = [];
+
+  constructor(private router: Router) { };
 
   //find users in local storage or if none empty array
   ngOnInit(): void {
     if (typeof window !== 'undefined') {
+      const loggedInUser = localStorage.getItem('loggedInUser');
+      if (loggedInUser) {
+        this.router.navigateByUrl('/profile')
+      }
       this.users = JSON.parse(localStorage.getItem('users') || '[]');
     }
   }
@@ -42,9 +48,13 @@ export class RegisterComponent implements OnInit {
     //add new user to list
     this.users.push(newUser);
 
-    //push updated list back to local storage
     localStorage.setItem('users', JSON.stringify(this.users));
+    localStorage.setItem('loggedInUser', JSON.stringify(newUser));
+
     alert('Registration successful!')
+    this.router.navigateByUrl('/profile')
+    
+
 
 
   }
