@@ -1,1 +1,8 @@
-<p>profile works!</p>
+<div *ngIf="loggedInUser">
+    <h2>Hello, {{loggedInUser.username}}!</h2>
+    <p>Email: {{loggedInUser.email}}</p>
+    <p>ID: {{loggedInUser.id}}</p>
+    <p>Roles: {{loggedInUser.roles}}</p>
+
+    <button (click)="logout()">Logout</button>
+</div>
