@@ -1,6 +1,8 @@
 <div class="container">
     <div class="sidebar">
-        <h3>Groups</h3>
+        <h3>Groups 
+            <button (click)="showCreateGroupForm()" class="add-button">+</button>
+        </h3>
         <ul>
             <li *ngFor="let group of groups">
                 <button (click)="selectGroup(group.id)">{{ group.name }}</button>
@@ -8,7 +10,9 @@
         </ul>
 
         <div *ngIf="selectedGroupId !== null">
-            <h3>Channels</h3>
+            <h3>Channels 
+                <button (click)="showCreateChannelForm()" class="add-button">+</button>
+            </h3>
             <ul>
                 <li *ngFor="let channel of filteredChannels">
                     <button (click)="selectChannel(channel.id)">{{ channel.name }}</button>
@@ -28,6 +32,24 @@
             </div>
             <input type="text" [(ngModel)]="newMessage" placeholder="Type a message..." (keyup.enter)="sendMessage()">
             <button (click)="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <div *ngIf="showGroupForm" class="modal">
+        <div class="modal-content">
+            <h4>Create Group</h4>
+            <input type="text" [(ngModel)]="newGroupName" placeholder="Enter group name">
+            <button (click)="createGroup()">Create</button>
+            <button (click)="hideCreateGroupForm()">Cancel</button>
+        </div>
+    </div>
+
+    <div *ngIf="showChannelForm" class="modal">
+        <div class="modal-content">
+            <h4>Create Channel</h4>
+            <input type="text" [(ngModel)]="newChannelName" placeholder="Enter channel name">
+            <button (click)="createChannel()">Create</button>
+            <button (click)="hideCreateChannelForm()">Cancel</button>
         </div>
     </div>
 </div>

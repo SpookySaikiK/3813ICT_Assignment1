@@ -15,6 +15,9 @@ export class ChatComponent implements OnInit {
   channels: { id: number, name: string, groupId: number }[] = [];
   messages: { channelId: number, username: string, text: string }[] = [];
   newMessage: string = '';
+  newGroupName: string = '';
+  newChannelName: string = '';
+
 
   selectedGroupId: number | null = null;
   selectedChannelId: number | null = null;
@@ -23,6 +26,14 @@ export class ChatComponent implements OnInit {
   filteredMessages: { channelId: number, username: string, text: string }[] = [];
 
   loggedInUser: any;
+  showGroupForm: boolean = false;
+  showChannelForm: boolean = false;
+
+
+
+
+
+
 
   constructor(private router: Router) { };
 
@@ -102,6 +113,80 @@ export class ChatComponent implements OnInit {
     }
 
   }
+
+
+
+  createGroup() {
+    if (this.newGroupName.trim() !== '') {
+      const newGroup = {
+        id: this.groups.length + 1,
+        name: this.newGroupName.trim(),
+        adminId: this.loggedInUser.id
+      };
+
+      this.groups.push(newGroup);
+      localStorage.setItem('groups', JSON.stringify(this.groups));
+      this.newGroupName = '';
+      this.hideCreateGroupForm();
+
+    }
+
+  }
+
+  deleteGroup(groupId: number) {
+
+  }
+
+  createChannel() {
+    if (this.selectedGroupId !== null && this.newChannelName.trim() !== '') {
+      const newChannel = {
+        id: this.channels.length + 1,
+        name: this.newChannelName.trim(),
+        groupId: this.selectedGroupId
+      };
+      this.channels.push(newChannel);
+      this.filteredChannels.push(newChannel);
+      localStorage.setItem('channels', JSON.stringify(this.channels));
+      this.newChannelName = '';
+      this.hideCreateChannelForm();
+
+      
+    }
+
+  }
+
+  deleteChannel(channelId: number) {
+
+  }
+
+  showCreateGroupForm(){
+    this.showGroupForm = true;
+  }
+
+  hideCreateGroupForm() {
+    this.showGroupForm = false;
+  }
+
+  showCreateChannelForm(){
+    this.showChannelForm = true;
+  }
+
+  hideCreateChannelForm() {
+    this.showChannelForm = false;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   scrollToBottom() {
     const messagesContainer = document.getElementById('messagesContainer');

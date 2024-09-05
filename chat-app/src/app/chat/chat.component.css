@@ -6,13 +6,17 @@
 }
 
 .sidebar {
-    width: 250px;
+    width: 125px;
     border-right: 1px solid lightgray;
     padding-right: 20px;
 }
 
 .sidebar h3 {
     color: darkslategray;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0;
 }
 
 .sidebar ul {
@@ -22,22 +26,6 @@
 
 .sidebar li {
     margin-bottom: 10px;
-}
-
-.sidebar button {
-    width: 100%;
-    padding: 10px;
-    font-size: 15px;
-    background-color: #0266c9;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.sidebar button:hover {
-    background-color: #024d8c;
 }
 
 .chat-area {
@@ -51,7 +39,7 @@
 }
 
 .messages {
-    max-height: 50vh;
+    height: 50vh;
     overflow-y: auto;
     margin-bottom: 20px;
     padding: 10px;
@@ -72,6 +60,7 @@ input[type="text"] {
 }
 
 button {
+    width: 50%px;
     padding: 10px;
     font-size: 15px;
     background-color: #0266c9;
@@ -83,5 +72,70 @@ button {
 }
 
 button:hover {
+    background-color: #024d8c;
+}
+
+.add-button {
+    width: 25px;
+    height: 25px;
+    background: none;
+    border: 1px solid #f1f1f1;
+    color: #0266c9;
+    font-size: 15px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-align: center;
+    line-height: 1;
+}
+
+.add-button:hover {
+    color: #ffffff;
+    border-color: #ffffff;
+    background-color: #7a5ce6;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    width: 300px;
+    text-align: center;
+}
+
+.modal-content input {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid lightgray;
+    border-radius: 5px;
+}
+
+.modal-content button {
+    padding: 10px;
+    margin-inline: 30px;
+    font-size: 15px;
+    background-color: #0266c9;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.modal-content button:hover {
     background-color: #024d8c;
 }
