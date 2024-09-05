@@ -11,7 +11,7 @@ import { Router } from '@angular/router';
   styleUrl: './chat.component.css'
 })
 export class ChatComponent implements OnInit {
-  groups: { id: number, name: string, adminId: number }[] = [];
+  groups: { id: number, name: string, adminId: number, members: number[] }[] = [];
   channels: { id: number, name: string, groupId: number }[] = [];
   messages: { channelId: number, username: string, text: string }[] = [];
   newMessage: string = '';
@@ -29,12 +29,6 @@ export class ChatComponent implements OnInit {
   showGroupForm: boolean = false;
   showChannelForm: boolean = false;
 
-
-
-
-
-
-
   constructor(private router: Router) { };
 
   ngOnInit(): void {
@@ -43,31 +37,15 @@ export class ChatComponent implements OnInit {
       const user = localStorage.getItem('loggedInUser');
       if (user) {
         this.loggedInUser = JSON.parse(user);
+        this.loadGroups();
+        this.loadChannels();
+        this.loadMessages();
+        this.filterUserGroups()
 
       } else {
         this.loggedInUser = {};
         this.router.navigateByUrl('/login');
       }
-    }
-
-    const groups = [
-      { id: 1, name: 'Group 1' },
-      { id: 2, name: 'Group 2' }
-    ];
-
-    const channels = [
-      { id: 1, name: 'Channel 1', groupId: 1 },
-      { id: 2, name: 'Channel 2', groupId: 1 },
-      { id: 3, name: 'Channel 3', groupId: 2 }
-    ];
-
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('groups', JSON.stringify(groups));
-      localStorage.setItem('channels', JSON.stringify(channels));
-
-      this.loadGroups();
-      this.loadChannels();
-      this.loadMessages();
     }
   }
 
@@ -85,19 +63,21 @@ export class ChatComponent implements OnInit {
 
   }
 
+  filterUserGroups() {
+    this.groups = this.groups.filter(group =>
+      group.members.includes(this.loggedInUser.id) || this.loggedInUser.roles.includes('superAdmin')
+    );
+  }
+
   selectGroup(groupId: number) {
     this.selectedGroupId = groupId;
     this.selectedChannelId = null;
-
     this.filteredChannels = this.channels.filter(channel => channel.groupId === groupId);
   }
 
   selectChannel(channelId: number) {
     this.selectedChannelId = channelId;
-
     this.filteredMessages = this.messages.filter(message => message.channelId === channelId);
-
-
   }
 
 
@@ -117,11 +97,12 @@ export class ChatComponent implements OnInit {
 
 
   createGroup() {
-    if (this.newGroupName.trim() !== '') {
+    if (this.newGroupName.trim() !== '' && this.isAdmin()) {
       const newGroup = {
         id: this.groups.length + 1,
         name: this.newGroupName.trim(),
-        adminId: this.loggedInUser.id
+        adminId: this.loggedInUser.id,
+        members: [this.loggedInUser.id]
       };
 
       this.groups.push(newGroup);
@@ -134,11 +115,28 @@ export class ChatComponent implements OnInit {
   }
 
   deleteGroup(groupId: number) {
+    if (this.isAdmin()) {
+      this.groups = this.groups.filter(group => group.id !== groupId);
+      localStorage.setItem('groups', JSON.stringify(this.groups));
 
+      this.channels = this.channels.filter(channel => channel.groupId !== groupId);
+      localStorage.setItem('channels', JSON.stringify(this.channels));
+
+      this.messages = this.messages.filter(message => !this.channels.some(channel => channel.id === message.channelId && channel.groupId === groupId));
+      localStorage.setItem('messages', JSON.stringify(this.messages));
+
+      if (this.selectedGroupId === groupId) {
+        this.selectedGroupId = null;
+        this.selectedChannelId = null;
+        this.filteredChannels = [];
+        this.filteredMessages = [];
+      }
+    }
   }
 
+
   createChannel() {
-    if (this.selectedGroupId !== null && this.newChannelName.trim() !== '') {
+    if (this.selectedGroupId !== null && this.newChannelName.trim() !== '' && this.isAdmin()) {
       const newChannel = {
         id: this.channels.length + 1,
         name: this.newChannelName.trim(),
@@ -150,16 +148,31 @@ export class ChatComponent implements OnInit {
       this.newChannelName = '';
       this.hideCreateChannelForm();
 
-      
+
     }
 
   }
 
   deleteChannel(channelId: number) {
+    if (this.isAdmin()) {
+      this.channels = this.channels.filter(channel => channel.id !== channelId);
+      localStorage.setItem('channels', JSON.stringify(this.channels));
 
+      this.messages = this.messages.filter(message => message.channelId !== channelId);
+      localStorage.setItem('messages', JSON.stringify(this.messages));
+
+      if (this.selectedChannelId === channelId) {
+        this.selectedChannelId = null;
+        this.filteredMessages = [];
+      }
+
+      if (this.selectedGroupId !== null) {
+        this.filteredChannels = this.channels.filter(channel => channel.groupId === this.selectedGroupId);
+      }
+    }
   }
 
-  showCreateGroupForm(){
+  showCreateGroupForm() {
     this.showGroupForm = true;
   }
 
@@ -167,13 +180,26 @@ export class ChatComponent implements OnInit {
     this.showGroupForm = false;
   }
 
-  showCreateChannelForm(){
+  showCreateChannelForm() {
     this.showChannelForm = true;
   }
 
   hideCreateChannelForm() {
     this.showChannelForm = false;
   }
+
+  isAdmin(): boolean {
+    return this.loggedInUser.roles.includes('groupAdmin') || this.loggedInUser.roles.includes('superAdmin');
+  }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -194,13 +220,5 @@ export class ChatComponent implements OnInit {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
   }
-
-
-
-
-
-
-
-
 
 }

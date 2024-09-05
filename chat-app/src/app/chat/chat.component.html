@@ -1,21 +1,23 @@
 <div class="container">
     <div class="sidebar">
         <h3>Groups 
-            <button (click)="showCreateGroupForm()" class="add-button">+</button>
+            <button *ngIf="isAdmin()" (click)="showCreateGroupForm()" class="add-button">+</button>
         </h3>
         <ul>
             <li *ngFor="let group of groups">
                 <button (click)="selectGroup(group.id)">{{ group.name }}</button>
+                <button *ngIf="isAdmin()" (click)="deleteGroup(group.id)" class="delete-button">X</button>
             </li>
         </ul>
 
         <div *ngIf="selectedGroupId !== null">
             <h3>Channels 
-                <button (click)="showCreateChannelForm()" class="add-button">+</button>
+                <button *ngIf="isAdmin()" (click)="showCreateChannelForm()" class="add-button">+</button>
             </h3>
             <ul>
                 <li *ngFor="let channel of filteredChannels">
                     <button (click)="selectChannel(channel.id)">{{ channel.name }}</button>
+                    <button *ngIf="isAdmin()" (click)="deleteChannel(channel.id)" class="delete-button">X</button>
                 </li>
             </ul>
         </div>

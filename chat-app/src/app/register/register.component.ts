@@ -18,7 +18,6 @@ export class RegisterComponent implements OnInit {
 
   constructor(private router: Router) { };
 
-  //find users in local storage or if none empty array
   ngOnInit(): void {
     if (typeof window !== 'undefined') {
       const loggedInUser = localStorage.getItem('loggedInUser');
@@ -30,7 +29,16 @@ export class RegisterComponent implements OnInit {
   }
 
   registerUser() {
-    //check if the username is in use
+    if (!this.username || !this.email || !this.password) {
+      alert('All fields are required!');
+      return;
+    }
+
+    if (this.password.length < 6) {
+      alert('Password must be at least 6 characters long!');
+      return;
+    }
+
     if (this.users.find((user: any) => user.username === this.username)) {
       alert('Username already exists!');
       return;
@@ -45,7 +53,6 @@ export class RegisterComponent implements OnInit {
       groups: []
     }
 
-    //add new user to list
     this.users.push(newUser);
 
     localStorage.setItem('users', JSON.stringify(this.users));
@@ -53,7 +60,7 @@ export class RegisterComponent implements OnInit {
 
     alert('Registration successful!')
     this.router.navigateByUrl('/profile')
-    
+
 
 
 
