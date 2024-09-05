@@ -1,1 +1,33 @@
-<p>chat works!</p>
+<div class="container">
+    <div class="sidebar">
+        <h3>Groups</h3>
+        <ul>
+            <li *ngFor="let group of groups">
+                <button (click)="selectGroup(group.id)">{{ group.name }}</button>
+            </li>
+        </ul>
+
+        <div *ngIf="selectedGroupId !== null">
+            <h3>Channels</h3>
+            <ul>
+                <li *ngFor="let channel of filteredChannels">
+                    <button (click)="selectChannel(channel.id)">{{ channel.name }}</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="chat-area">
+        <h3>Chat Area</h3>
+        <div *ngIf="selectedChannelId !== null">
+            <p>Currently chatting in channel ID: {{ selectedChannelId }}</p>
+            <div id="messagesContainer" class="messages">
+                <div *ngFor="let message of filteredMessages" class="message">
+                    {{ message.username }}: {{ message.text }}
+                </div>
+            </div>
+            <input type="text" [(ngModel)]="newMessage" placeholder="Type a message..." (keyup.enter)="sendMessage()">
+            <button (click)="sendMessage()">Send</button>
+        </div>
+    </div>
+</div>
