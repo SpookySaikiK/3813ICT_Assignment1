@@ -6,25 +6,31 @@
         <ul>
             <li *ngFor="let group of groups">
                 <button (click)="selectGroup(group.id)">{{ group.name }}</button>
-                <button *ngIf="isAdmin()" (click)="deleteGroup(group.id)" class="delete-button">X</button>
+                <button *ngIf="ownsGroup(group.id)" (click)="deleteGroup(group.id)" class="delete-button">X</button>
             </li>
+
         </ul>
         <div *ngIf="selectedGroupId !== null">
             <h3>Channels
-                <button *ngIf="isAdmin()" (click)="showCreateChannelForm()" class="add-button">+</button>
+                <button *ngIf="ownsGroup(selectedGroupId)" (click)="showCreateChannelForm()"
+                    class="add-button">+</button>
             </h3>
             <ul>
                 <li *ngFor="let channel of filteredChannels">
                     <button (click)="selectChannel(channel.id)">{{ channel.name }}</button>
-                    <button *ngIf="isAdmin()" (click)="deleteChannel(channel.id)" class="delete-button">X</button>
+                    <button *ngIf="ownsGroup(selectedGroupId)" (click)="deleteChannel(channel.id)"
+                        class="delete-button">X</button>
                 </li>
             </ul>
         </div>
+        <button (click)="showJoinRequestModal()" class="join-request-button">
+            Join Request
+        </button>
     </div>
 
     <div class="chat-area">
-        <h3>Chat Area</h3>
-        <div *ngIf="!this.loggedInUser?.roles?.includes('superAdmin');" >
+        <h3>{{getSelectedGroupName()}}</h3>
+        <div *ngIf="!this.loggedInUser?.roles?.includes('superAdmin');">
             <button *ngIf="selectedGroupId !== null" (click)="leaveGroup()" class="leave-button">
                 Leave Group
             </button>
@@ -42,6 +48,8 @@
         <button *ngIf="isAdmin() && selectedGroupId !== null" (click)="showManageMembersModal()" class="manage-button">
             Manage Members
         </button>
+        <button *ngIf="isAdmin() && selectedGroupId !== null" (click)="showViewRequestsModal(selectedGroupId)"
+            class="view-requests-button">View Requests</button>
     </div>
 
     <div *ngIf="showGroupForm" class="modal">
@@ -84,6 +92,37 @@
                 {{ feedbackMessage }}
             </div>
             <button (click)="hideManageMembersModal()">Close</button>
+        </div>
+    </div>
+
+    <div *ngIf="showJoinRequestForm" class="modal">
+        <div class="modal-content">
+            <h3>Join Request</h3>
+            <div>
+                <input type="text" [(ngModel)]="joinRequestGroupName" placeholder="Enter group name">
+                <button (click)="submitJoinRequest()">Confirm</button>
+            </div>
+            <div *ngIf="feedbackMessage"
+                [ngClass]="{'success-message': feedbackMessageType === 'success', 'error-message': feedbackMessageType === 'error'}">
+                {{ feedbackMessage }}
+            </div>
+            <button (click)="hideJoinRequestForm()">Cancel</button>
+        </div>
+    </div>
+
+    <div *ngIf="showViewRequestsForm" class="modal">
+        <div class="modal-content">
+            <h3>Join Requests for Group: {{ joinRequestGroupName }}</h3>
+            <ul>
+                <li *ngFor="let request of joinRequests">
+                    <div>{{ request.username }} - {{ request.reason }}</div>
+                    <div class="approve-reject-buttons">
+                        <button class="approve" (click)="approveRequest(request.username)">Approve</button>
+                        <button class="reject" (click)="rejectRequest(request.username)">Reject</button>
+                    </div>
+                </li>
+            </ul>
+            <button (click)="hideViewRequestsForm()" class="close-button">Close</button>
         </div>
     </div>
 

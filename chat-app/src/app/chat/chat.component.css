@@ -19,7 +19,7 @@
     margin: 0;
 }
 
-.sidebar ul {
+ul {
     list-style-type: none;
     padding: 0;
 }
@@ -177,4 +177,34 @@ button:hover {
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-  }
+}
+
+.join-request-button {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    padding: 10px;
+    font-size: 15px;
+    background-color: #0266c9;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.approve-reject-buttons{
+    display: flex;
+    justify-content: space-evenly;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    
+}
+
+.approve{
+    background-color: rgb(54, 184, 54);
+}
+
+.reject{
+    background-color: rgb(207, 64, 64);
+}

@@ -33,7 +33,17 @@ export class LoginComponent implements OnInit {
           roles: ['superAdmin'],
           groups: []
         };
+        const groupAdmin = {
+          id: 2,
+          username: 'groupAdmin',
+          email: 'group@admin.com',
+          password: '123',
+          roles: ['groupAdmin'],
+          groups: []
+        };
+
         users.push(superUser);
+        users.push(groupAdmin);
         localStorage.setItem('users', JSON.stringify(users));
       }
     }
