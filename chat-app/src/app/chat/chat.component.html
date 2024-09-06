@@ -1,6 +1,6 @@
 <div class="container">
     <div class="sidebar">
-        <h3>Groups 
+        <h3>Groups
             <button *ngIf="isAdmin()" (click)="showCreateGroupForm()" class="add-button">+</button>
         </h3>
         <ul>
@@ -9,9 +9,8 @@
                 <button *ngIf="isAdmin()" (click)="deleteGroup(group.id)" class="delete-button">X</button>
             </li>
         </ul>
-
         <div *ngIf="selectedGroupId !== null">
-            <h3>Channels 
+            <h3>Channels
                 <button *ngIf="isAdmin()" (click)="showCreateChannelForm()" class="add-button">+</button>
             </h3>
             <ul>
@@ -35,23 +34,52 @@
             <input type="text" [(ngModel)]="newMessage" placeholder="Type a message..." (keyup.enter)="sendMessage()">
             <button (click)="sendMessage()">Send</button>
         </div>
+        <button *ngIf="isAdmin() && selectedGroupId !== null" (click)="showManageMembersModal()" class="manage-button">
+            Manage Members
+        </button>
     </div>
 
     <div *ngIf="showGroupForm" class="modal">
         <div class="modal-content">
-            <h4>Create Group</h4>
-            <input type="text" [(ngModel)]="newGroupName" placeholder="Enter group name">
-            <button (click)="createGroup()">Create</button>
+            <h3>Create Group</h3>
+            <div>
+                <input type="text" [(ngModel)]="newGroupName" placeholder="Enter group name">
+                <button (click)="createGroup()">Create</button>
+            </div>
             <button (click)="hideCreateGroupForm()">Cancel</button>
         </div>
     </div>
 
     <div *ngIf="showChannelForm" class="modal">
         <div class="modal-content">
-            <h4>Create Channel</h4>
-            <input type="text" [(ngModel)]="newChannelName" placeholder="Enter channel name">
-            <button (click)="createChannel()">Create</button>
+            <h3>Create Channel</h3>
+            <div>
+                <input type="text" [(ngModel)]="newChannelName" placeholder="Enter channel name">
+                <button (click)="createChannel()">Create</button>
+            </div>
             <button (click)="hideCreateChannelForm()">Cancel</button>
         </div>
     </div>
+
+    <div *ngIf="showManageMembersForm" class="modal">
+        <div class="modal-content">
+            <h3>Manage Members for Group: {{ getSelectedGroupName() }}</h3>
+            <div>
+                <h4>Add Member</h4>
+                <input type="text" [(ngModel)]="newMemberUsername" placeholder="Enter username to add">
+                <button (click)="addMember()">Add</button>
+            </div>
+            <div>
+                <h4>Remove Member</h4>
+                <input type="text" [(ngModel)]="removeMemberUsername" placeholder="Enter username to remove">
+                <button (click)="removeMember()">Remove</button>
+            </div>
+            <div *ngIf="feedbackMessage"
+                [ngClass]="{'success-message': feedbackMessageType === 'success', 'error-message': feedbackMessageType === 'error'}">
+                {{ feedbackMessage }}
+            </div>
+            <button (click)="hideManageMembersModal()">Close</button>
+        </div>
+    </div>
+
 </div>

@@ -94,6 +94,7 @@ button:hover {
     border-color: #ffffff;
     background-color: #7a5ce6;
 }
+
 .delete-button {
     width: 25px;
     height: 25px;
@@ -132,21 +133,17 @@ button:hover {
     padding: 20px;
     border-radius: 5px;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-    width: 300px;
+    width: 400px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
-.modal-content input {
-    width: 90%;
+.modal-content .close-button {
+    align-self: center;
+    margin-top: 20px;
     padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid lightgray;
-    border-radius: 5px;
-}
-
-.modal-content button {
-    padding: 10px;
-    margin-inline: 30px;
     font-size: 15px;
     background-color: #0266c9;
     color: white;
@@ -156,6 +153,14 @@ button:hover {
     transition: background-color 0.3s ease;
 }
 
-.modal-content button:hover {
+.modal-content .close-button:hover {
     background-color: #024d8c;
+}
+
+.success-message {
+    color: green;
+}
+
+.error-message {
+    color: red;
 }
