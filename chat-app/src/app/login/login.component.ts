@@ -17,22 +17,25 @@ export class LoginComponent implements OnInit {
   constructor(private router: Router) { }
 
   ngOnInit(): void {
-    const loggedInUser = localStorage.getItem('loggedInUser');
-    if (loggedInUser) {
-      this.router.navigateByUrl('/profile')
-    }
-    let users = JSON.parse(localStorage.getItem('users') || '[]');
-    if (users.length === 0) {
-      const superUser = {
-        id: 1,
-        username: 'super',
-        email: 'super@admin.com',
-        password: '123',
-        roles: ['superAdmin'],
-        groups: []
-      };
-      users.push(superUser);
-      localStorage.setItem('users', JSON.stringify(users));
+    if (typeof window !== 'undefined') {
+
+      const loggedInUser = localStorage.getItem('loggedInUser');
+      if (loggedInUser) {
+        this.router.navigateByUrl('/profile')
+      }
+      let users = JSON.parse(localStorage.getItem('users') || '[]');
+      if (users.length === 0) {
+        const superUser = {
+          id: 1,
+          username: 'super',
+          email: 'super@admin.com',
+          password: '123',
+          roles: ['superAdmin'],
+          groups: []
+        };
+        users.push(superUser);
+        localStorage.setItem('users', JSON.stringify(users));
+      }
     }
   }
 

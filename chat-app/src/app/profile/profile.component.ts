@@ -31,4 +31,21 @@ export class ProfileComponent {
     localStorage.removeItem('loggedInUser');
     this.router.navigateByUrl('/login');
   }
+
+  deleteAccount() {
+    if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      if (this.loggedInUser) {
+        const updatedUsers = users.filter((user: { id: string }) => user.id !== this.loggedInUser.id);
+        localStorage.setItem('users', JSON.stringify(updatedUsers));
+        localStorage.removeItem('loggedInUser');
+        this.router.navigateByUrl('/login');
+      }
+    }
+  }
+
+
+
+
+
 }

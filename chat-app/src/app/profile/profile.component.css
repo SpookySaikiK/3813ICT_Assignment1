@@ -34,3 +34,11 @@ button {
 button:hover {
     background-color: #0250a1;
 }
+
+.delete-button{
+    background-color: rgb(204, 44, 44);
+}
+.delete-button:hover{
+    background-color: darkred;
+    
+}
