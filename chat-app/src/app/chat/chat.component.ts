@@ -18,6 +18,8 @@ export class ChatComponent implements OnInit {
   newGroupName: string = '';
   newChannelName: string = '';
 
+  joinRequest: {username: string, reason: string, groupId: number}[] = [];
+
   selectedGroupId: number | null = null;
   selectedChannelId: number | null = null;
 
@@ -47,16 +49,11 @@ export class ChatComponent implements OnInit {
         this.loadGroups();
         this.loadChannels();
         this.loadMessages();
-        this.filterUserGroups()
       } else {
         this.loggedInUser = {};
         this.router.navigateByUrl('/login');
       }
     }
-  }
-
-  loadGroups() {
-    this.groups = JSON.parse(localStorage.getItem('groups') || '[]')
   }
 
   loadChannels() {
@@ -69,7 +66,8 @@ export class ChatComponent implements OnInit {
 
   }
 
-  filterUserGroups() {
+  loadGroups() {
+    this.groups = JSON.parse(localStorage.getItem('groups') || '[]')
     this.groups = this.groups.filter(group =>
       group.members.includes(this.loggedInUser.id) || this.loggedInUser.roles.includes('superAdmin')
     );
@@ -164,6 +162,26 @@ export class ChatComponent implements OnInit {
     }
   }
 
+  leaveGroup() {
+    if (this.selectedGroupId !== null) {
+      const group = this.groups.find(group => group.id === this.selectedGroupId);
+      if (group && group.members.includes(this.loggedInUser.id)) {
+        group.members = group.members.filter(memberId => memberId !== this.loggedInUser.id);
+        localStorage.setItem('groups', JSON.stringify(this.groups));
+
+        if (group.members.length === 0) {
+          this.deleteGroup(this.selectedGroupId);
+        }
+
+        this.selectedGroupId = null;
+        this.selectedChannelId = null;
+        this.filteredChannels = [];
+        this.filteredMessages = [];
+        this.loadGroups();
+      }
+    }
+  }
+
   addMember() {
     this.clearFeedbackMessage();
     if (this.selectedGroupId !== null && this.newMemberUsername.trim() !== '') {
@@ -206,13 +224,13 @@ export class ChatComponent implements OnInit {
     }
   }
 
-  private setFeedbackMessage(message: string, type: string) {
+  setFeedbackMessage(message: string, type: string) {
     this.feedbackMessage = message;
     this.feedbackMessageType = type;
     setTimeout(() => this.clearFeedbackMessage(), 5000);
   }
 
-  private clearFeedbackMessage() {
+  clearFeedbackMessage() {
     this.feedbackMessage = '';
     this.feedbackMessageType = '';
   }

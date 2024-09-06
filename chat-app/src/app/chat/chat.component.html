@@ -24,6 +24,11 @@
 
     <div class="chat-area">
         <h3>Chat Area</h3>
+        <div *ngIf="!this.loggedInUser?.roles?.includes('superAdmin');" >
+            <button *ngIf="selectedGroupId !== null" (click)="leaveGroup()" class="leave-button">
+                Leave Group
+            </button>
+        </div>
         <div *ngIf="selectedChannelId !== null">
             <p>Currently chatting in channel ID: {{ selectedChannelId }}</p>
             <div id="messagesContainer" class="messages">

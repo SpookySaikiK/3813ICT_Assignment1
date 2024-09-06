@@ -164,3 +164,17 @@ button:hover {
 .error-message {
     color: red;
 }
+
+.leave-button {
+    position: absolute;
+    top: 80px;
+    right: 30px;
+    padding: 10px;
+    font-size: 15px;
+    background-color: #0266c9;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
