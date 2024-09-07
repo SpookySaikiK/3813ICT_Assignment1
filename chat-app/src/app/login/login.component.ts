@@ -18,7 +18,6 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     if (typeof window !== 'undefined') {
-
       const loggedInUser = localStorage.getItem('loggedInUser');
       if (loggedInUser) {
         this.router.navigateByUrl('/profile')
@@ -50,21 +49,19 @@ export class LoginComponent implements OnInit {
           roles: ['user'],
           groups: []
         };
-
         users.push(superUser);
         users.push(groupAdmin);
         users.push(user1)
         localStorage.setItem('users', JSON.stringify(users));
       }
-      if (groups.length === 0){
-          const group1 = {
-            id: 1,
-            name: 'group',
-            ownerName: 'groupAdmin',
-            admins: [2],
-            members: [2]
-          }
-
+      if (groups.length === 0) {
+        const group1 = {
+          id: 1,
+          name: 'group',
+          ownerName: 'groupAdmin',
+          admins: [2],
+          members: [2]
+        }
         groups.push(group1)
         localStorage.setItem('groups', JSON.stringify(groups))
       }
@@ -74,7 +71,6 @@ export class LoginComponent implements OnInit {
   loginUser() {
     const users = JSON.parse(localStorage.getItem('users') || '[]');
     const user = users.find((user: any) => user.username === this.username && user.password === this.password);
-
     if (user) {
       localStorage.setItem('loggedInUser', JSON.stringify(user));
       alert('Login successful!')

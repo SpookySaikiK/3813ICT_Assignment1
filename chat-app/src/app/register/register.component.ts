@@ -33,12 +33,10 @@ export class RegisterComponent implements OnInit {
       alert('All fields are required!');
       return;
     }
-
     if (this.password.length < 6) {
       alert('Password must be at least 6 characters long!');
       return;
     }
-
     if (this.users.find((user: any) => user.username === this.username)) {
       alert('Username already exists!');
       return;
@@ -52,7 +50,6 @@ export class RegisterComponent implements OnInit {
       roles: ['user'],
       groups: []
     }
-
     this.users.push(newUser);
 
     localStorage.setItem('users', JSON.stringify(this.users));
@@ -60,15 +57,9 @@ export class RegisterComponent implements OnInit {
 
     alert('Registration successful!')
     this.router.navigateByUrl('/profile')
-
-
-
-
   }
 
   generateId() {
     return this.users.length + 1;
-
   }
-
 }
