@@ -99,9 +99,6 @@
                     <input type="text" [(ngModel)]="newMemberUsername" placeholder="Enter username">
                     <button (click)="addMember()">Add</button>
                 </div>
-
-
-
                 <div *ngIf="windowLoaded() && this.loggedInUser?.roles?.includes('superAdmin');">
                     <h4>Promote Member</h4>
                     <input type="text" [(ngModel)]="newMemberUsername" placeholder="Enter username">
@@ -110,11 +107,7 @@
                         <option value="groupAdmin">Group Admin</option>
                         <option value="superAdmin">Super Admin</option>
                     </select>
-
                 </div>
-
-
-
             </div>
             <div class="manage-row">
                 <div>
@@ -173,8 +166,7 @@
                         <li *ngFor="let request of showAdminRequests()">
                             <div>{{ request.username }}: {{ request.reason }}</div>
                             <div class="approve-reject-buttons">
-                                <button class="approve"
-                                    (click)="promoteMember(request.username, 'groupAdmin')">Approve</button>
+                                <button class="approve" (click)="promoteMember(request.username, 'groupAdmin')">Approve</button>
                                 <button class="reject" (click)="rejectRequest(request.username)">Reject</button>
                             </div>
                         </li>
