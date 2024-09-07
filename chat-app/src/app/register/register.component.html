@@ -3,13 +3,10 @@
     <form (ngSubmit)="registerUser()">
         <label>Username:</label>
         <input [(ngModel)]="username" type="text" name="username" required>
-
         <label>Email:</label>
         <input [(ngModel)]="email" type="email" name="email" required>
-
         <label>Password:</label>
         <input [(ngModel)]="password" type="password" name="password" required>
-
         <button type="submit">Register</button>
     </form>
 </div>

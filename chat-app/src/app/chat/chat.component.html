@@ -1,4 +1,5 @@
 <div class="container">
+    <!-- Sidebar -->
     <div class="sidebar">
         <h3>Groups
             <button *ngIf="windowLoaded() && isAdmin()" (click)="showCreateGroupForm()" class="add-button">+</button>
@@ -29,6 +30,7 @@
         </button>
     </div>
 
+    <!-- Chat Area -->
     <div class="chat-area">
         <h3>{{getSelectedGroupName()}}</h3>
         <div *ngIf="windowLoaded() && !this.loggedInUser?.roles?.includes('superAdmin');">
@@ -63,6 +65,7 @@
             (click)="showViewRequestsModal(selectedGroupId)" class="view-requests-button">View Requests</button>
     </div>
 
+    <!-- Create Group Modal -->
     <div *ngIf="showGroupForm" class="modal">
         <div class="modal-content">
             <h3>Create Group</h3>
@@ -74,6 +77,7 @@
         </div>
     </div>
 
+    <!-- Create Channel Modal -->
     <div *ngIf="showChannelForm" class="modal">
         <div class="modal-content">
             <h3>Create Channel</h3>
@@ -85,6 +89,7 @@
         </div>
     </div>
 
+    <!-- Manage Members Modal -->
     <div *ngIf="showManageMembersForm" class="modal">
         <div class="modal-content-manage">
             <h3>Manage Members for Group: {{ getSelectedGroupName() }}</h3>

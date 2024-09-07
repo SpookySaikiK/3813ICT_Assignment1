@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.css'
 })
+
 export class ProfileComponent {
   loggedInUser: any;
 
@@ -19,7 +20,6 @@ export class ProfileComponent {
       const user = localStorage.getItem('loggedInUser');
       if (user) {
         this.loggedInUser = JSON.parse(user);
-
       } else {
         this.loggedInUser = {};
         this.router.navigateByUrl('/login');
@@ -43,9 +43,4 @@ export class ProfileComponent {
       }
     }
   }
-
-
-
-
-
 }
