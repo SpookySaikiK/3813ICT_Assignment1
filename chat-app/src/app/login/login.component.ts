@@ -24,6 +24,7 @@ export class LoginComponent implements OnInit {
         this.router.navigateByUrl('/profile')
       }
       let users = JSON.parse(localStorage.getItem('users') || '[]');
+      let groups = JSON.parse(localStorage.getItem('groups') || '[]');
       if (users.length === 0) {
         const superUser = {
           id: 1,
@@ -41,10 +42,31 @@ export class LoginComponent implements OnInit {
           roles: ['groupAdmin'],
           groups: []
         };
+        const user1 = {
+          id: 3,
+          username: 'user',
+          email: 'user@admin.com',
+          password: '123',
+          roles: ['user'],
+          groups: []
+        };
 
         users.push(superUser);
         users.push(groupAdmin);
+        users.push(user1)
         localStorage.setItem('users', JSON.stringify(users));
+      }
+      if (groups.length === 0){
+          const group1 = {
+            id: 1,
+            name: 'group',
+            ownerName: 'groupAdmin',
+            admins: [2],
+            members: [2]
+          }
+
+        groups.push(group1)
+        localStorage.setItem('groups', JSON.stringify(groups))
       }
     }
   }

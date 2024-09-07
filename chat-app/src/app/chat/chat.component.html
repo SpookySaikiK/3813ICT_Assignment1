@@ -6,7 +6,8 @@
         <ul>
             <li *ngFor="let group of groups">
                 <button (click)="selectGroup(group.id)">{{ group.name }}</button>
-                <button *ngIf="windowLoaded() && ownsGroup(group.id)" (click)="deleteGroup(group.id)" class="delete-button">X</button>
+                <button *ngIf="windowLoaded() && ownsGroup(group.id)" (click)="deleteGroup(group.id)"
+                    class="delete-button">X</button>
             </li>
 
         </ul>
@@ -45,11 +46,12 @@
             <input type="text" [(ngModel)]="newMessage" placeholder="Type a message..." (keyup.enter)="sendMessage()">
             <button (click)="sendMessage()">Send</button>
         </div>
-        <button *ngIf="windowLoaded() && selectedGroupId !== null && isGroupAdmin(selectedGroupId)" (click)="showManageMembersModal()" class="manage-button">
+        <button *ngIf="windowLoaded() && selectedGroupId !== null && isGroupAdmin(selectedGroupId)"
+            (click)="showManageMembersModal()" class="manage-button">
             Manage Members
         </button>
-        <button *ngIf="windowLoaded() && selectedGroupId !== null && isGroupAdmin(selectedGroupId)" (click)="showViewRequestsModal(selectedGroupId)"
-            class="view-requests-button">View Requests</button>
+        <button *ngIf="windowLoaded() && selectedGroupId !== null && isGroupAdmin(selectedGroupId)"
+            (click)="showViewRequestsModal(selectedGroupId)" class="view-requests-button">View Requests</button>
     </div>
 
     <div *ngIf="showGroupForm" class="modal">
@@ -75,17 +77,26 @@
     </div>
 
     <div *ngIf="showManageMembersForm" class="modal">
-        <div class="modal-content">
+        <div class="modal-content-manage">
             <h3>Manage Members for Group: {{ getSelectedGroupName() }}</h3>
-            <div>
-                <h4>Add Member</h4>
-                <input type="text" [(ngModel)]="newMemberUsername" placeholder="Enter username to add">
-                <button (click)="addMember()">Add</button>
+            <div class="manage-row">
+                <div>
+                    <h4>Add Member</h4>
+                    <input type="text" [(ngModel)]="newMemberUsername" placeholder="Enter username">
+                    <button (click)="addMember()">Add</button>
+                </div>
+                <div *ngIf="windowLoaded() && this.loggedInUser?.roles?.includes('superAdmin');">
+                    <h4>Promote Member</h4>
+                    <input type="text" [(ngModel)]="newMemberUsername" placeholder="Enter username">
+                    <button (click)="promoteMember(newMemberUsername)">Add</button>
+                </div>
             </div>
-            <div>
-                <h4>Remove Member</h4>
-                <input type="text" [(ngModel)]="removeMemberUsername" placeholder="Enter username to remove">
-                <button (click)="removeMember()">Remove</button>
+            <div class="manage-row">
+                <div>
+                    <h4>Remove Member</h4>
+                    <input type="text" [(ngModel)]="removeMemberUsername" placeholder="Enter username">
+                    <button (click)="removeMember()">Remove</button>
+                </div>
             </div>
             <div *ngIf="feedbackMessage"
                 [ngClass]="{'success-message': feedbackMessageType === 'success', 'error-message': feedbackMessageType === 'error'}">
@@ -95,12 +106,13 @@
         </div>
     </div>
 
-    <div *ngIf="showJoinRequestForm" class="modal">
+    <div *ngIf="showRequestForm" class="modal">
         <div class="modal-content">
             <h3>Join Request</h3>
             <div>
                 <input type="text" [(ngModel)]="joinRequestGroupName" placeholder="Enter group name">
-                <button (click)="submitJoinRequest()">Confirm</button>
+                <button (click)="submitJoinRequest()">Confirm Join Request</button>
+                <button *ngIf="selectedGroupId !== null" (click)="requestAdminRights()">Request Admin Rights</button>
             </div>
             <div *ngIf="feedbackMessage"
                 [ngClass]="{'success-message': feedbackMessageType === 'success', 'error-message': feedbackMessageType === 'error'}">
@@ -110,22 +122,41 @@
         </div>
     </div>
 
+
     <div *ngIf="showViewRequestsForm" class="modal">
         <div class="modal-content">
-            <h3>Join Requests for Group: {{ joinRequestGroupName }}</h3>
-            <ul>
-                <li *ngFor="let request of joinRequests">
-                    <div>{{ request.username }}: {{ request.reason }}</div>
-                    <div class="approve-reject-buttons">
-                        <button class="approve" (click)="approveRequest(request.username)">Approve</button>
-                        <button class="reject" (click)="rejectRequest(request.username)">Reject</button>
-                    </div>
-                </li>
-            </ul>
+            <h3>Requests for Group: {{ joinRequestGroupName }}</h3>
+            <div>
+                <h4>Join Requests</h4>
+                <div>
+                    <ul>
+                        <li *ngFor="let request of showJoinRequests()">
+                            <div>{{ request.username }}: {{ request.reason }}</div>
+                            <div class="approve-reject-buttons">
+                                <button class="approve" (click)="approveRequest(request.username)">Approve</button>
+                                <button class="reject" (click)="rejectRequest(request.username)">Reject</button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div *ngIf="windowLoaded() && this.loggedInUser?.roles?.includes('superAdmin');">
+                    <h4>Admin Requests</h4>
+                    <ul>
+                        <li *ngFor="let request of showAdminRequests()">
+                            <div>{{ request.username }}: {{ request.reason }}</div>
+                            <div class="approve-reject-buttons">
+                                <button class="approve" (click)="promoteMember(request.username)">Approve</button>
+                                <button class="reject" (click)="rejectRequest(request.username)">Reject</button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
             <div *ngIf="feedbackMessage"
                 [ngClass]="{'success-message': feedbackMessageType === 'success', 'error-message': feedbackMessageType === 'error'}">
                 {{ feedbackMessage }}
             </div>
+
             <button (click)="hideViewRequestsForm()" class="close-button">Close</button>
         </div>
     </div>

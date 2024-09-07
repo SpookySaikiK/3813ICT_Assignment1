@@ -24,9 +24,9 @@ export class ChatComponent implements OnInit {
   filteredChannels: { id: number, name: string, groupId: number }[] = [];
   filteredMessages: { channelId: number, username: string, text: string }[] = [];
 
-  joinRequests: { username: string, reason: string, groupId: number }[] = [];
+  requests: { username: string, reason: string, groupId: number }[] = [];
   joinRequestGroupName: string = '';
-  showJoinRequestForm: boolean = false;
+  showRequestForm: boolean = false;
   showViewRequestsForm: boolean = false;
 
   loggedInUser: any;
@@ -52,7 +52,7 @@ export class ChatComponent implements OnInit {
         this.loadGroups();
         this.loadChannels();
         this.loadMessages();
-        this.loadJoinRequests();
+        this.loadRequests();
       } else {
         this.loggedInUser = {};
         this.router.navigateByUrl('/login');
@@ -107,33 +107,39 @@ export class ChatComponent implements OnInit {
   //Create-Delete Group
   createGroup() {
     if (this.newGroupName.trim() !== '' && this.isAdmin()) {
+      const groups = JSON.parse(localStorage.getItem('groups') || '[]');
+      const group = groups.find((g: any) => g.id === this.selectedGroupId);
+
       let idExists = true;
       let newGroupId: number = 0;
       while (idExists) {
         newGroupId = newGroupId + 1;
-        idExists = this.groups.some(group => group.id === newGroupId);
+        idExists = groups.some((group: any) => group.id === newGroupId);
       }
 
       const newGroup = {
         id: newGroupId,
         name: this.newGroupName.trim(),
         ownerName: this.loggedInUser.username,
-        admins: [],
+        admins: [this.loggedInUser.id],
         members: [this.loggedInUser.id]
       };
 
-      this.groups.push(newGroup);
-      localStorage.setItem('groups', JSON.stringify(this.groups));
+      groups.push(newGroup);
+
+      localStorage.setItem('groups', JSON.stringify(groups));
       this.newGroupName = '';
       this.hideCreateGroupForm();
+      this.loadGroups();
     }
   }
 
   deleteGroup(groupId: number) {
-    const group = this.groups.find(group => group.id === groupId);
+    const groups = JSON.parse(localStorage.getItem('groups') || '[]');
+    const group = groups.find((g: any) => g.id === groupId);
 
     if (group && (this.loggedInUser.username === group.ownerName || this.loggedInUser.roles.includes('superAdmin'))) {
-      this.groups = this.groups.filter(group => group.id !== groupId);
+      this.groups = groups.filter((group: any) => group.id !== groupId);
       localStorage.setItem('groups', JSON.stringify(this.groups));
       this.channels = this.channels.filter(channel => channel.groupId !== groupId);
       localStorage.setItem('channels', JSON.stringify(this.channels));
@@ -145,7 +151,7 @@ export class ChatComponent implements OnInit {
         this.selectedChannelId = null;
         this.filteredChannels = [];
         this.filteredMessages = [];
-        this.joinRequests = []
+        this.requests = []
       }
     }
   }
@@ -201,20 +207,14 @@ export class ChatComponent implements OnInit {
   // Leave Group
   leaveGroup() {
     if (this.selectedGroupId !== null) {
-      const groups = localStorage.getItem('groups')
-      const group = this.groups.find(group => group.id === this.selectedGroupId);
+      const groups = JSON.parse(localStorage.getItem('groups') || '[]');
+      const group = groups.find((g: any) => g.id === this.selectedGroupId);
 
       if (group && group.members.includes(this.loggedInUser.id)) {
-        group.members = group.members.filter(memberId => memberId !== this.loggedInUser.id);
+        group.members = group.members.filter((memberId: number) => memberId !== this.loggedInUser.id);
 
-        if (group.members.length === 0) {
-          this.groups = this.groups.filter(g => g.id !== this.selectedGroupId);
-          this.channels = this.channels.filter(channel => channel.groupId !== this.selectedGroupId);
-          this.messages = this.messages.filter(message => !this.channels.some(channel => channel.id === message.channelId && channel.groupId === this.selectedGroupId));
-        }
-        
-        localStorage.setItem('groups', JSON.stringify(this.groups));
-        
+        localStorage.setItem('groups', JSON.stringify(groups));
+
         this.selectedGroupId = null;
         this.selectedChannelId = null;
         this.filteredChannels = [];
@@ -234,10 +234,11 @@ export class ChatComponent implements OnInit {
       const users = JSON.parse(localStorage.getItem('users') || '[]');
       const user = users.find((u: any) => u.username === this.newMemberUsername);
       if (user) {
-        const group = this.groups.find(g => g.id === this.selectedGroupId);
+        const groups = JSON.parse(localStorage.getItem('groups') || '[]');
+        const group = groups.find((g: any) => g.id === this.selectedGroupId);
         if (group && !group.members.includes(user.id)) {
           group.members.push(user.id);
-          localStorage.setItem('groups', JSON.stringify(this.groups));
+          localStorage.setItem('groups', JSON.stringify(groups));
           this.newMemberUsername = '';
           this.setFeedbackMessage('User added successfully!', 'success');
         } else {
@@ -255,10 +256,11 @@ export class ChatComponent implements OnInit {
       const users = JSON.parse(localStorage.getItem('users') || '[]');
       const user = users.find((u: any) => u.username === this.removeMemberUsername);
       if (user) {
-        const group = this.groups.find(g => g.id === this.selectedGroupId);
+        const groups = JSON.parse(localStorage.getItem('groups') || '[]');
+        const group = groups.find((g: any) => g.id === this.selectedGroupId);
         if (group && group.members.includes(user.id)) {
-          group.members = group.members.filter(memberId => memberId !== user.id);
-          localStorage.setItem('groups', JSON.stringify(this.groups));
+          group.members = group.members.filter((memberId: number) => memberId !== user.id);
+          localStorage.setItem('groups', JSON.stringify(groups));
           this.removeMemberUsername = '';
           this.setFeedbackMessage('User removed successfully!', 'success');
         } else {
@@ -285,7 +287,7 @@ export class ChatComponent implements OnInit {
           return;
         }
 
-        const existingRequest = this.joinRequests.find(request =>
+        const existingRequest = this.requests.find(request =>
           request.username === this.loggedInUser.username &&
           request.groupId === group.id
         );
@@ -299,8 +301,8 @@ export class ChatComponent implements OnInit {
             reason: 'has requested to join the group.',
             groupId: group.id
           };
-          this.joinRequests.push(request);
-          localStorage.setItem('joinRequests', JSON.stringify(this.joinRequests));
+          this.requests.push(request);
+          localStorage.setItem('requests', JSON.stringify(this.requests));
           this.setFeedbackMessage('Request sent!', 'success');
         }
 
@@ -310,29 +312,89 @@ export class ChatComponent implements OnInit {
     }
   }
 
-
-
-
-  loadJoinRequests() {
-    const allRequests: { username: string; reason: string; groupId: number }[] = JSON.parse(localStorage.getItem('joinRequests') || '[]');
+  requestAdminRights() {
     if (this.selectedGroupId !== null) {
-      this.joinRequests = allRequests.filter((request: { username: string; reason: string; groupId: number }) => request.groupId === this.selectedGroupId);
+      const group = this.groups.find(g => g.id === this.selectedGroupId);
+
+      if (group) {
+        const existingRequest = this.requests.find(request =>
+          request.username === this.loggedInUser.username &&
+          request.groupId === this.selectedGroupId &&
+          request.reason.includes('requested admin rights')
+        );
+
+        if (existingRequest) {
+          this.setFeedbackMessage('You already have a pending admin request for this group.', 'error');
+        } else if (group.admins.includes(this.loggedInUser.id)) {
+          this.setFeedbackMessage('You are already an admin of this group.', 'error');
+        }
+        else {
+          const request = {
+            username: this.loggedInUser.username,
+            reason: 'has requested admin rights for this group.',
+            groupId: this.selectedGroupId
+          };
+          this.requests.push(request);
+          localStorage.setItem('requests', JSON.stringify(this.requests));
+          this.setFeedbackMessage('Admin request sent!', 'success');
+        }
+      } else {
+        this.setFeedbackMessage('No such Group exists.', 'error');
+      }
+      this.loadGroups();
+    }
+  }
+
+  promoteMember(newMemberUsername: string) {
+    this.clearFeedbackMessage();
+    if (this.selectedGroupId !== null && newMemberUsername.trim() !== '') {
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const user = users.find((u: any) => u.username === newMemberUsername);
+      if (user) {
+        const groups = JSON.parse(localStorage.getItem('groups') || '[]');
+        const group = groups.find((g: any) => g.id === this.selectedGroupId);
+        if (group && !group.admins.includes(user.id)) {
+          group.admins.push(user.id);
+          localStorage.setItem('groups', JSON.stringify(groups));
+          newMemberUsername = '';
+          this.setFeedbackMessage('User promoted successfully!', 'success');
+
+          this.requests = this.requests.filter(request => request.username !== user.username);
+          localStorage.setItem('requests', JSON.stringify(this.requests));
+
+        } else {
+          this.setFeedbackMessage('User is already an Admin of this group.', 'error');
+        }
+      } else {
+        this.setFeedbackMessage('No such user exists.', 'error');
+      }
+    }
+  }
+
+
+
+
+  loadRequests() {
+    const allRequests: { username: string; reason: string; groupId: number }[] = JSON.parse(localStorage.getItem('requests') || '[]');
+    if (this.selectedGroupId !== null) {
+      this.requests = allRequests.filter((request: { username: string; reason: string; groupId: number }) => request.groupId === this.selectedGroupId);
     } else {
-      this.joinRequests = allRequests;
+      this.requests = allRequests;
     }
   }
 
   approveRequest(username: string) {
     if (this.selectedGroupId !== null) {
-      const group = this.groups.find(g => g.id === this.selectedGroupId);
+      const groups = JSON.parse(localStorage.getItem('groups') || '[]');
+      const group = groups.find((g: any) => g.id === this.selectedGroupId);
       const user = JSON.parse(localStorage.getItem('users') || '[]').find((u: any) => u.username === username);
 
       if (group && user) {
         group.members.push(user.id);
-        localStorage.setItem('groups', JSON.stringify(this.groups));
+        localStorage.setItem('groups', JSON.stringify(groups));
 
-        this.joinRequests = this.joinRequests.filter(request => request.username !== username);
-        localStorage.setItem('joinRequests', JSON.stringify(this.joinRequests));
+        this.requests = this.requests.filter(request => request.username !== username);
+        localStorage.setItem('requests', JSON.stringify(this.requests));
 
         this.setFeedbackMessage('Request approved!', 'success');
       }
@@ -341,8 +403,8 @@ export class ChatComponent implements OnInit {
 
   rejectRequest(username: string) {
     if (this.selectedGroupId !== null) {
-      this.joinRequests = this.joinRequests.filter(request => request.username !== username);
-      localStorage.setItem('joinRequests', JSON.stringify(this.joinRequests));
+      this.requests = this.requests.filter(request => request.username !== username);
+      localStorage.setItem('requests', JSON.stringify(this.requests));
       this.setFeedbackMessage('Request rejected.', 'error');
     }
   }
@@ -351,18 +413,28 @@ export class ChatComponent implements OnInit {
     this.selectedGroupId = groupId;
     this.showViewRequestsForm = true;
     this.joinRequestGroupName = this.groups.find(g => g.id === groupId)?.name || '';
-    this.loadJoinRequests();
+    this.loadRequests();
   }
   hideViewRequestsForm() {
     this.showViewRequestsForm = false;
   }
 
   showJoinRequestModal() {
-    this.showJoinRequestForm = true;
+    this.showRequestForm = true;
   }
   hideJoinRequestForm() {
-    this.showJoinRequestForm = false;
+    this.showRequestForm = false;
   }
+
+  showJoinRequests() {
+    return this.requests.filter(request => request.reason === 'has requested to join the group.');
+  }
+
+
+  showAdminRequests() {
+    return this.requests.filter(request => request.reason === 'has requested admin rights for this group.');
+  }
+
 
 
   //Check Permissions
