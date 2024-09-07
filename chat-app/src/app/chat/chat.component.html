@@ -50,6 +50,15 @@
             (click)="showManageMembersModal()" class="manage-button">
             Manage Members
         </button>
+        <button
+            *ngIf="windowLoaded() && selectedGroupId !== null && selectedChannelId !== null && isGroupAdmin(selectedGroupId)"
+            (click)="showBanUserModal()" class="manage-button">
+            Ban User
+        </button>
+        <button *ngIf="windowLoaded() && selectedGroupId !== null && selectedChannelId !== null && isGroupAdmin(selectedGroupId)"
+            (click)="showBanReportsModal()" class="manage-button">
+            Reports
+        </button>
         <button *ngIf="windowLoaded() && selectedGroupId !== null && isGroupAdmin(selectedGroupId)"
             (click)="showViewRequestsModal(selectedGroupId)" class="view-requests-button">View Requests</button>
     </div>
@@ -85,11 +94,22 @@
                     <input type="text" [(ngModel)]="newMemberUsername" placeholder="Enter username">
                     <button (click)="addMember()">Add</button>
                 </div>
+
+
+
                 <div *ngIf="windowLoaded() && this.loggedInUser?.roles?.includes('superAdmin');">
                     <h4>Promote Member</h4>
                     <input type="text" [(ngModel)]="newMemberUsername" placeholder="Enter username">
-                    <button (click)="promoteMember(newMemberUsername)">Add</button>
+                    <button (click)="promoteMember(newMemberUsername, selectedPromotionRole)">Add</button>
+                    <select [(ngModel)]="selectedPromotionRole">
+                        <option value="groupAdmin">Group Admin</option>
+                        <option value="superAdmin">Super Admin</option>
+                    </select>
+
                 </div>
+
+
+
             </div>
             <div class="manage-row">
                 <div>
@@ -106,6 +126,7 @@
         </div>
     </div>
 
+    <!-- Submit Request Modal -->
     <div *ngIf="showRequestForm" class="modal">
         <div class="modal-content">
             <h3>Join Request</h3>
@@ -122,11 +143,12 @@
         </div>
     </div>
 
-
+    <!-- View Requets Modal -->
     <div *ngIf="showViewRequestsForm" class="modal">
         <div class="modal-content">
             <h3>Requests for Group: {{ joinRequestGroupName }}</h3>
             <div>
+                <!-- Join Requests -->
                 <h4>Join Requests</h4>
                 <div>
                     <ul>
@@ -139,13 +161,15 @@
                         </li>
                     </ul>
                 </div>
+                <!-- Admin Requests -->
                 <div *ngIf="windowLoaded() && this.loggedInUser?.roles?.includes('superAdmin');">
                     <h4>Admin Requests</h4>
                     <ul>
                         <li *ngFor="let request of showAdminRequests()">
                             <div>{{ request.username }}: {{ request.reason }}</div>
                             <div class="approve-reject-buttons">
-                                <button class="approve" (click)="promoteMember(request.username)">Approve</button>
+                                <button class="approve"
+                                    (click)="promoteMember(request.username, 'groupAdmin')">Approve</button>
                                 <button class="reject" (click)="rejectRequest(request.username)">Reject</button>
                             </div>
                         </li>
@@ -158,6 +182,34 @@
             </div>
 
             <button (click)="hideViewRequestsForm()" class="close-button">Close</button>
+        </div>
+    </div>
+
+    <!-- Ban User Modal -->
+    <div *ngIf="showBanUserForm" class="modal">
+        <div class="modal-content">
+            <h3>Ban User from Channel</h3>
+            <input type="text" [(ngModel)]="banUserName" placeholder="Username">
+            <textarea [(ngModel)]="banReason" placeholder="Reason for banning"></textarea>
+            <div class="modal-actions">
+                <button (click)="banUserFromChannel()">Confirm</button>
+                <button (click)="hideBanUserModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Modal -->
+    <div *ngIf="showBanReportsForm" class="modal">
+        <div class="modal-content">
+            <h3>Ban Reports</h3>
+            <ul>
+                <li *ngFor="let report of banReportsList">
+                    {{ report.username }} - {{ report.reason }}
+                </li>
+            </ul>
+            <div class="modal-actions">
+                <button (click)="hideBanReportsModal()">Close</button>
+            </div>
         </div>
     </div>
 

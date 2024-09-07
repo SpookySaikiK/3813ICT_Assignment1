@@ -28,6 +28,7 @@ export class ChatComponent implements OnInit {
   joinRequestGroupName: string = '';
   showRequestForm: boolean = false;
   showViewRequestsForm: boolean = false;
+  selectedPromotionRole: 'superAdmin' | 'groupAdmin' = 'groupAdmin';
 
   loggedInUser: any;
   showGroupForm: boolean = false;
@@ -42,6 +43,14 @@ export class ChatComponent implements OnInit {
 
   removeMemberUsername: string = '';
 
+  banUserName: string = '';
+  banReason: string = '';
+  banReportsList: { channelId: number, username: string, reason: string }[] = [];
+  bannedUsers: { channelId: number, username: string, reason: string }[] = [];
+  showBanUserForm: boolean = false;
+  showBanReportsForm: boolean = false;
+
+
   constructor(private router: Router) { };
 
   ngOnInit(): void {
@@ -53,6 +62,7 @@ export class ChatComponent implements OnInit {
         this.loadChannels();
         this.loadMessages();
         this.loadRequests();
+        this.loadBannedUsers();
       } else {
         this.loggedInUser = {};
         this.router.navigateByUrl('/login');
@@ -65,9 +75,11 @@ export class ChatComponent implements OnInit {
   }
 
   loadChannels() {
-    this.channels = JSON.parse(localStorage.getItem('channels') || '[]')
-
+    const bannedChannelIds = this.bannedUsers.filter(ban => ban.username === this.loggedInUser.username).map(ban => ban.channelId);
+    this.channels = JSON.parse(localStorage.getItem('channels') || '[]');
+    this.channels = this.channels.filter(channel => !bannedChannelIds.includes(channel.id));
   }
+
 
   loadMessages() {
     this.messages = JSON.parse(localStorage.getItem('messages') || '[]')
@@ -84,8 +96,15 @@ export class ChatComponent implements OnInit {
   selectGroup(groupId: number) {
     this.selectedGroupId = groupId;
     this.selectedChannelId = null;
-    this.filteredChannels = this.channels.filter(channel => channel.groupId === groupId);
+    
+    const bannedChannelIds = this.bannedUsers
+      .filter(ban => ban.username === this.loggedInUser.username)
+      .map(ban => ban.channelId);
+    
+    this.filteredChannels = this.channels
+      .filter(channel => channel.groupId === groupId && !bannedChannelIds.includes(channel.id));
   }
+  
 
   selectChannel(channelId: number) {
     this.selectedChannelId = channelId;
@@ -345,7 +364,7 @@ export class ChatComponent implements OnInit {
     }
   }
 
-  promoteMember(newMemberUsername: string) {
+  promoteMember(newMemberUsername: string, role: 'superAdmin' | 'groupAdmin') {
     this.clearFeedbackMessage();
     if (this.selectedGroupId !== null && newMemberUsername.trim() !== '') {
       const users = JSON.parse(localStorage.getItem('users') || '[]');
@@ -353,17 +372,30 @@ export class ChatComponent implements OnInit {
       if (user) {
         const groups = JSON.parse(localStorage.getItem('groups') || '[]');
         const group = groups.find((g: any) => g.id === this.selectedGroupId);
-        if (group && !group.admins.includes(user.id)) {
-          group.admins.push(user.id);
-          localStorage.setItem('groups', JSON.stringify(groups));
-          newMemberUsername = '';
-          this.setFeedbackMessage('User promoted successfully!', 'success');
 
+        if (group) {
+          if (role === 'groupAdmin') {
+            if (!group.admins.includes(user.id)) {
+              group.admins.push(user.id);
+              this.setFeedbackMessage('User promoted to Group Admin successfully!', 'success');
+            } else {
+              this.setFeedbackMessage('User is already a Group Admin.', 'error');
+            }
+          } else if (role === 'superAdmin') {
+            if (!user.roles.includes('superAdmin')) {
+              user.roles.push('superAdmin');
+              this.setFeedbackMessage('User promoted to Super Admin successfully!', 'success');
+            } else {
+              this.setFeedbackMessage('User is already a Super Admin.', 'error');
+            }
+          }
+
+          localStorage.setItem('groups', JSON.stringify(groups));
+          localStorage.setItem('users', JSON.stringify(users));
           this.requests = this.requests.filter(request => request.username !== user.username);
           localStorage.setItem('requests', JSON.stringify(this.requests));
-
         } else {
-          this.setFeedbackMessage('User is already an Admin of this group.', 'error');
+          this.setFeedbackMessage('No such group exists.', 'error');
         }
       } else {
         this.setFeedbackMessage('No such user exists.', 'error');
@@ -434,6 +466,54 @@ export class ChatComponent implements OnInit {
   showAdminRequests() {
     return this.requests.filter(request => request.reason === 'has requested admin rights for this group.');
   }
+
+  //Ban User
+  banUserFromChannel() {
+    const channel = this.channels.find(c => c.id === this.selectedChannelId);
+    const bannedUsers = JSON.parse(localStorage.getItem('bannedUsers') || '[]');
+
+    const newBan = {
+      channelId: this.selectedChannelId,
+      username: this.banUserName,
+      reason: this.banReason
+    };
+
+    bannedUsers.push(newBan);
+    localStorage.setItem('bannedUsers', JSON.stringify(bannedUsers));
+
+    this.setFeedbackMessage('User banned successfully!', 'success');
+    this.hideBanUserModal();
+  }
+
+  loadBannedUsers() {
+    this.bannedUsers = JSON.parse(localStorage.getItem('bannedUsers') || '[]');
+  }
+
+  showBanUserModal() {
+    this.banUserName = '';
+    this.banReason = '';
+    this.showBanUserForm = true;
+  }
+
+  hideBanUserModal() {
+    this.showBanUserForm = false;
+  }
+
+  // Reports
+  banReports() {
+    const bannedUsers = JSON.parse(localStorage.getItem('bannedUsers') || '[]');
+    this.banReportsList = bannedUsers.filter((ban: any) => ban.channelId === this.selectedChannelId);
+  }
+
+  showBanReportsModal() {
+    this.banReports();
+    this.showBanReportsForm = true;
+  }
+
+  hideBanReportsModal() {
+    this.showBanReportsForm = false;
+  }
+
 
 
 
