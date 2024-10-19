@@ -1,82 +1,55 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, HttpClientModule],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  styleUrls: ['./login.component.css']
 })
 
 export class LoginComponent implements OnInit {
   username: string = '';
   password: string = '';
+  private readonly apiUrl: string = 'http://localhost:3000/loginUser';
 
-  constructor(private router: Router) { }
+  constructor(private router: Router, private http: HttpClient) { }
 
   ngOnInit(): void {
     if (typeof window !== 'undefined') {
       const loggedInUser = localStorage.getItem('loggedInUser');
       if (loggedInUser) {
-        this.router.navigateByUrl('/profile')
-      }
-      let users = JSON.parse(localStorage.getItem('users') || '[]');
-      let groups = JSON.parse(localStorage.getItem('groups') || '[]');
-      if (users.length === 0) {
-        const superUser = {
-          id: 1,
-          username: 'super',
-          email: 'super@admin.com',
-          password: '123',
-          roles: ['superAdmin'],
-          groups: []
-        };
-        const groupAdmin = {
-          id: 2,
-          username: 'groupAdmin',
-          email: 'group@admin.com',
-          password: '123',
-          roles: ['groupAdmin'],
-          groups: []
-        };
-        const user1 = {
-          id: 3,
-          username: 'user',
-          email: 'user@admin.com',
-          password: '123',
-          roles: ['user'],
-          groups: []
-        };
-        users.push(superUser);
-        users.push(groupAdmin);
-        users.push(user1)
-        localStorage.setItem('users', JSON.stringify(users));
-      }
-      if (groups.length === 0) {
-        const group1 = {
-          id: 1,
-          name: 'group',
-          ownerName: 'groupAdmin',
-          admins: [2],
-          members: [2]
-        }
-        groups.push(group1)
-        localStorage.setItem('groups', JSON.stringify(groups))
+        this.router.navigateByUrl('/profile');
       }
     }
   }
 
-  loginUser() {
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const user = users.find((user: any) => user.username === this.username && user.password === this.password);
-    if (user) {
-      localStorage.setItem('loggedInUser', JSON.stringify(user));
-      alert('Login successful!')
-      this.router.navigateByUrl('/profile')
-    } else {
-      alert('Invalid username or password!')
-    }
+  loginUser(): void {
+    const userCredentials = { username: this.username, password: this.password };
+
+    this.http.post<{ message: string; username: string; useremail: string; usergroup: string; userrole: string }>(
+      this.apiUrl,
+      userCredentials
+    ).subscribe({
+      next: (response) => {
+        //Save user information to local storage
+        localStorage.setItem('loggedInUser', JSON.stringify(response));
+        alert('Login successful!'); //Notify success
+        this.router.navigateByUrl('/profile'); //Redirect to profile
+      },
+      error: (error) => {
+        //Handle different error responses
+        if (error.status === 404) {
+          alert('User not found!');
+        } else if (error.status === 401) {
+          alert('Invalid password!');
+        } else {
+          alert('An error occurred during login. Please try again.');
+        }
+      }
+    });
   }
 }

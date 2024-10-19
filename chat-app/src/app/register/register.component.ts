@@ -1,30 +1,30 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, HttpClientModule],
   templateUrl: './register.component.html',
-  styleUrl: './register.component.css'
+  styleUrls: ['./register.component.css']
 })
 
 export class RegisterComponent implements OnInit {
   username: string = '';
   email: string = '';
   password: string = '';
-  users: any[] = [];
+  private readonly apiUrl: string = 'http://localhost:3000/registerUser';
 
-  constructor(private router: Router) { };
+  constructor(private router: Router, private http: HttpClient) { }
 
   ngOnInit(): void {
     if (typeof window !== 'undefined') {
       const loggedInUser = localStorage.getItem('loggedInUser');
       if (loggedInUser) {
-        this.router.navigateByUrl('/profile')
+        this.router.navigateByUrl('/profile');
       }
-      this.users = JSON.parse(localStorage.getItem('users') || '[]');
     }
   }
 
@@ -37,29 +37,26 @@ export class RegisterComponent implements OnInit {
       alert('Password must be at least 6 characters long!');
       return;
     }
-    if (this.users.find((user: any) => user.username === this.username)) {
-      alert('Username already exists!');
-      return;
-    }
 
     const newUser = {
       username: this.username,
       email: this.email,
-      password: this.password,
-      id: this.generateId(),
-      roles: ['user'],
-      groups: []
-    }
-    this.users.push(newUser);
+      password: this.password
+    };
 
-    localStorage.setItem('users', JSON.stringify(this.users));
-    localStorage.setItem('loggedInUser', JSON.stringify(newUser));
-
-    alert('Registration successful!')
-    this.router.navigateByUrl('/profile')
-  }
-
-  generateId() {
-    return this.users.length + 1;
+    this.http.post<{ message: string }>(this.apiUrl, newUser).subscribe({
+      next: (response) => {
+        alert(response.message); //Show success message from backend
+        localStorage.setItem('loggedInUser', JSON.stringify(newUser)); //Store user data in local storage
+        this.router.navigateByUrl('/profile'); //Navigate to profile page
+      },
+      error: (error) => {
+        if (error.status === 400) {
+          alert('Username already exists!');
+        } else {
+          alert('An error occurred during registration. Please try again.');
+        }
+      }
+    });
   }
 }

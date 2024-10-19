@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "name": "General",
+    "groupId": 1
+  },
+  {
+    "id": 2,
+    "name": "General2",
+    "groupId": 2
+  },
+  {
+    "id": 3,
+    "name": "General3",
+    "groupId": 2
+  }
+]

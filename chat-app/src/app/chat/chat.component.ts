@@ -2,17 +2,18 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, HttpClientModule],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.css'
 })
 
 export class ChatComponent implements OnInit {
-  groups: { id: number, name: string, ownerName: string, admins: string[], members: number[] }[] = [];
+  groups: { id: number, name: string, ownerName: string, admins: number[], members: number[] }[] = [];
   channels: { id: number, name: string, groupId: number }[] = [];
   messages: { channelId: number, username: string, text: string }[] = [];
   newMessage: string = '';
@@ -51,7 +52,7 @@ export class ChatComponent implements OnInit {
   showBanUserForm: boolean = false;
   showBanReportsForm: boolean = false;
 
-  constructor(private router: Router) { };
+  constructor(private router: Router, private http: HttpClient) { };
 
   ngOnInit(): void {
     if (typeof window !== 'undefined') {
@@ -75,10 +76,21 @@ export class ChatComponent implements OnInit {
   }
 
   loadChannels() {
-    const bannedChannelIds = this.bannedUsers.filter(ban => ban.username === this.loggedInUser.username).map(ban => ban.channelId);
-    this.channels = JSON.parse(localStorage.getItem('channels') || '[]');
-    this.channels = this.channels.filter(channel => !bannedChannelIds.includes(channel.id));
+    if (this.selectedGroupId !== null) {
+      this.http.get<{ id: number, name: string, groupId: number }[]>('http://localhost:3000/manageChannel')
+        .subscribe({
+          next: (data) => {
+            //Filter channels based on the currently selected group
+            this.channels = data.filter(channel => channel.groupId === this.selectedGroupId);
+            this.filteredChannels = this.channels; //Update filtered channels to display
+          },
+          error: (error) => {
+            console.error('Error loading channels:', error);
+          }
+        });
+    }
   }
+
 
   loadMessages() {
     this.messages = JSON.parse(localStorage.getItem('messages') || '[]')
@@ -86,10 +98,18 @@ export class ChatComponent implements OnInit {
   }
 
   loadGroups() {
-    this.groups = JSON.parse(localStorage.getItem('groups') || '[]')
-    this.groups = this.groups.filter(group =>
-      group.members.includes(this.loggedInUser.id) || this.loggedInUser.roles.includes('superAdmin')
-    );
+    this.http.get<{ id: number, name: string, ownerName: string, admins: number[], members: number[] }[]>('http://localhost:3000/manageGroup')
+      .subscribe({
+        next: (data) => {
+          //Filter groups to only include those the user is a member of or if they are an admin
+          this.groups = data.filter(group =>
+            group.members.includes(this.loggedInUser.id) || group.admins.includes(this.loggedInUser.id)
+          );
+        },
+        error: (error) => {
+          console.error('Error loading groups:', error);
+        }
+      });
   }
 
   selectGroup(groupId: number) {
@@ -102,7 +122,11 @@ export class ChatComponent implements OnInit {
 
     this.filteredChannels = this.channels
       .filter(channel => channel.groupId === groupId && !bannedChannelIds.includes(channel.id));
+
+    //Load channels when a group is selected
+    this.loadChannels();
   }
+
 
   selectChannel(channelId: number) {
     this.selectedChannelId = channelId;
@@ -123,48 +147,38 @@ export class ChatComponent implements OnInit {
   //Create-Delete Group
   createGroup() {
     if (this.newGroupName.trim() !== '' && this.isAdmin()) {
-      const groups = JSON.parse(localStorage.getItem('groups') || '[]');
-      const group = groups.find((g: any) => g.id === this.selectedGroupId);
-      let idExists = true;
-      let newGroupId: number = 0;
-      while (idExists) {
-        newGroupId = newGroupId + 1;
-        idExists = groups.some((group: any) => group.id === newGroupId);
-      }
-      const newGroup = {
-        id: newGroupId,
+      const groupData = {
         name: this.newGroupName.trim(),
         ownerName: this.loggedInUser.username,
-        admins: [this.loggedInUser.id],
-        members: [this.loggedInUser.id]
+        adminId: this.loggedInUser.id
       };
 
-      groups.push(newGroup);
-      localStorage.setItem('groups', JSON.stringify(groups));
-      this.newGroupName = '';
-      this.hideCreateGroupForm();
-      this.loadGroups();
+      this.http.post<{ message: string }>('http://localhost:3000/manageGroup/create', groupData).subscribe({
+        next: (response) => {
+          alert(response.message);
+          this.newGroupName = '';
+          this.loadGroups(); //Reload groups to show the newly created one
+        },
+        error: (error) => {
+          alert('Error creating group: ' + error.message);
+        }
+      });
+    } else {
+      alert('Group name is required!');
     }
   }
 
+  // Delete Group Method
   deleteGroup(groupId: number) {
-    const groups = JSON.parse(localStorage.getItem('groups') || '[]');
-    const group = groups.find((g: any) => g.id === groupId);
-    if (group && (this.loggedInUser.username === group.ownerName || this.loggedInUser.roles.includes('superAdmin'))) {
-      this.groups = groups.filter((group: any) => group.id !== groupId);
-      localStorage.setItem('groups', JSON.stringify(this.groups));
-      this.channels = this.channels.filter(channel => channel.groupId !== groupId);
-      localStorage.setItem('channels', JSON.stringify(this.channels));
-      this.messages = this.messages.filter(message => !this.channels.some(channel => channel.id === message.channelId && channel.groupId === groupId));
-      localStorage.setItem('messages', JSON.stringify(this.messages));
-      if (this.selectedGroupId === groupId) {
-        this.selectedGroupId = null;
-        this.selectedChannelId = null;
-        this.filteredChannels = [];
-        this.filteredMessages = [];
-        this.requests = []
+    this.http.delete<{ message: string }>(`http://localhost:3000/manageGroup/delete/${groupId}`).subscribe({
+      next: (response) => {
+        alert(response.message);
+        this.loadGroups(); //Reload groups after deletion
+      },
+      error: (error) => {
+        alert('Error deleting group: ' + error.message);
       }
-    }
+    });
   }
 
   showCreateGroupForm() {
@@ -177,34 +191,40 @@ export class ChatComponent implements OnInit {
   //Create-Delete Channel
   createChannel() {
     if (this.selectedGroupId !== null && this.newChannelName.trim() !== '' && this.isAdmin()) {
-      const newChannel = {
-        id: this.channels.length + 1,
+      const channelData = {
         name: this.newChannelName.trim(),
         groupId: this.selectedGroupId
       };
-      this.channels.push(newChannel);
-      this.filteredChannels.push(newChannel);
-      localStorage.setItem('channels', JSON.stringify(this.channels));
-      this.newChannelName = '';
-      this.hideCreateChannelForm();
+
+      this.http.post<{ message: string }>('http://localhost:3000/manageChannel/create', channelData).subscribe({
+        next: (response) => {
+          alert(response.message);
+          this.newChannelName = '';
+          this.loadChannels(); //Reload channels after creation
+        },
+        error: (error) => {
+          alert('Error creating channel: ' + error.message);
+        }
+      });
+    } else {
+      alert('Channel name is required and a group must be selected!');
     }
   }
 
   deleteChannel(channelId: number) {
     if (this.isAdmin()) {
-      this.channels = this.channels.filter(channel => channel.id !== channelId);
-      localStorage.setItem('channels', JSON.stringify(this.channels));
-      this.messages = this.messages.filter(message => message.channelId !== channelId);
-      localStorage.setItem('messages', JSON.stringify(this.messages));
-      if (this.selectedChannelId === channelId) {
-        this.selectedChannelId = null;
-        this.filteredMessages = [];
-      }
-      if (this.selectedGroupId !== null) {
-        this.filteredChannels = this.channels.filter(channel => channel.groupId === this.selectedGroupId);
-      }
+      this.http.delete<{ message: string }>(`http://localhost:3000/manageChannel/delete/${channelId}`).subscribe({
+        next: (response) => {
+          alert(response.message);
+          this.loadChannels(); //Reload channels after deletion
+        },
+        error: (error) => {
+          alert('Error deleting channel: ' + error.message);
+        }
+      });
     }
   }
+
 
   showCreateChannelForm() {
     this.showChannelForm = true;
@@ -213,7 +233,7 @@ export class ChatComponent implements OnInit {
     this.showChannelForm = false;
   }
 
-  // Leave Group
+  //Leave Group
   leaveGroup() {
     if (this.selectedGroupId !== null) {
       const groups = JSON.parse(localStorage.getItem('groups') || '[]');

@@ -1,0 +1,35 @@
+[
+  {
+    "id": 1,
+    "name": "Admins",
+    "ownerName": "super",
+    "admins": [
+      1
+    ],
+    "members": [
+      1
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Everyone",
+    "ownerName": "super",
+    "admins": [
+      1
+    ],
+    "members": [
+      1, 2, 3
+    ]
+  },
+  {
+    "id": 3,
+    "name": "GroupAdmins",
+    "ownerName": "groupAdmin",
+    "admins": [
+      1
+    ],
+    "members": [
+      1
+    ]
+  }
+]

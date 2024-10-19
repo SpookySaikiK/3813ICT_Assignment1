@@ -1,19 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { HttpClient , HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, HttpClientModule],
   templateUrl: './profile.component.html',
-  styleUrl: './profile.component.css'
+  styleUrls: ['./profile.component.css']
 })
 
-export class ProfileComponent {
+export class ProfileComponent implements OnInit {
   loggedInUser: any;
+  private readonly apiUrl: string = 'http://localhost:3000/deleteUser';
 
-  constructor(private router: Router) { };
+  constructor(private router: Router, private http: HttpClient) { }
 
   ngOnInit(): void {
     if (typeof window !== 'undefined') {
@@ -34,13 +36,17 @@ export class ProfileComponent {
 
   deleteAccount() {
     if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      if (this.loggedInUser) {
-        const updatedUsers = users.filter((user: { id: string }) => user.id !== this.loggedInUser.id);
-        localStorage.setItem('users', JSON.stringify(updatedUsers));
-        localStorage.removeItem('loggedInUser');
-        this.router.navigateByUrl('/login');
-      }
+      this.http.delete(`${this.apiUrl}/${this.loggedInUser.username}`).subscribe({
+        next: () => {
+          localStorage.removeItem('loggedInUser');
+          alert('Account deleted successfully.');
+          this.router.navigateByUrl('/login');
+        },
+        error: (error) => {
+          console.error('Error deleting account:', error);
+          alert('There was an error deleting your account. Please try again later.');
+        }
+      });
     }
   }
 }

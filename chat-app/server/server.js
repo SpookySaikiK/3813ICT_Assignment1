@@ -1,27 +1,40 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const cors = require('cors');
-const { connectToDatabase, getDb } = require('./db');
-const usersRouter = require('./routes/users');
-const groupsRouter = require('./routes/groups');
-const channelsRouter = require('./routes/channels');
+const http = require('http');
 
+//Routes
+const registerUserRouter = require('./router/registerUser');
+const loginUserRouter = require('./router/loginUser');
+const deleteUserRouter = require('./router/deleteUser'); 
+const manageGroupRouter = require('./router/manageGroup');
+const manageChannelRouter = require('./router/manageChannel'); 
+
+const PORT = 3000;
 const app = express();
-const port = process.env.PORT || 3000;
 
-//Middleware
-app.use(cors());
-app.use(bodyParser.json());
+//CORS middleware
+app.use(cors({
+    origin: 'http://localhost:4200',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
 
-//Connect to MongoDB
-connectToDatabase().catch(console.error);
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-//Use the routes
-app.use('/api/users', usersRouter);
-app.use('/api/groups', groupsRouter);
-app.use('/api/channels', channelsRouter);
+//User Routes
+app.use('/registerUser', registerUserRouter);
+app.use('/loginUser', loginUserRouter);
+app.use('/deleteUser', deleteUserRouter);
 
-//Start the server
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+//Group Routes
+app.use('/manageGroup', manageGroupRouter);
+
+//Channel Routes
+app.use('/manageChannel', manageChannelRouter);
+
+
+//Start server
+http.createServer(app).listen(PORT, () => {
+    console.log(`Server listening on: ${PORT}`);
 });

@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "username": "super",
+    "email": "super@admin.com",
+    "password": "123",
+    "roles": [
+      "superAdmin"
+    ],
+    "groups": []
+  },
+  {
+    "id": 2,
+    "username": "groupAdmin",
+    "email": "group@admin.com",
+    "password": "123",
+    "roles": [
+      "groupAdmin"
+    ],
+    "groups": []
+  },
+  {
+    "id": 3,
+    "username": "user1",
+    "email": "user1@admin.com",
+    "password": "123",
+    "roles": [
+      "user"
+    ],
+    "groups": []
+  }
+]
