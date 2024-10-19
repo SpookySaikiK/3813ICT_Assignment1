@@ -236,19 +236,30 @@ export class ChatComponent implements OnInit {
   //Leave Group
   leaveGroup() {
     if (this.selectedGroupId !== null) {
-      const groups = JSON.parse(localStorage.getItem('groups') || '[]');
-      const group = groups.find((g: any) => g.id === this.selectedGroupId);
-      if (group && group.members.includes(this.loggedInUser.id)) {
-        group.members = group.members.filter((memberId: number) => memberId !== this.loggedInUser.id);
-        localStorage.setItem('groups', JSON.stringify(groups));
-        this.selectedGroupId = null;
-        this.selectedChannelId = null;
-        this.filteredChannels = [];
-        this.filteredMessages = [];
-        this.loadGroups();
-      }
+      const leaveData = {
+        groupId: this.selectedGroupId,
+        userId: this.loggedInUser.id
+      };
+
+      this.http.post<{ message: string }>('http://localhost:3000/manageGroup/leave', leaveData).subscribe({
+        next: (response) => {
+          alert(response.message); //Show success message
+          this.loadGroups(); //Reload groups to reflect changes
+          //Clear Selected
+          this.selectedGroupId = null;
+          this.selectedChannelId = null;
+          this.filteredChannels = [];
+          this.filteredMessages = [];
+        },
+        error: (error) => {
+          alert('Error leaving group: ' + error.message); //Show error message
+        }
+      });
+    } else {
+      alert('No group selected.');
     }
   }
+
 
   //Add-Remove Members
   addMember() {

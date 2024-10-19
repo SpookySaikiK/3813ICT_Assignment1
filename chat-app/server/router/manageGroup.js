@@ -61,4 +61,26 @@ router.delete('/delete/:id', (req, res) => {
     return res.status(200).send({ message: 'Group deleted successfully' });
 });
 
+//Leave group route
+router.post('/leave', (req, res) => {
+    const { groupId, userId } = req.body;
+    const groups = loadGroups();
+
+    const group = groups.find(g => g.id === groupId);
+    if (!group) {
+        return res.status(404).send({ message: 'Group not found' });
+    }
+
+    //Check if the user is a member of the group
+    if (!group.members.includes(userId)) {
+        return res.status(400).send({ message: 'User is not a member of this group' });
+    }
+
+    //Remove the user from the group
+    group.members = group.members.filter(memberId => memberId !== userId);
+    saveGroups(groups); //Save the updated groups back to JSON
+
+    return res.status(200).send({ message: 'User left the group successfully' });
+});
+
 module.exports = router;
