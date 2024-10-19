@@ -1,14 +1,27 @@
 const express = require('express');
-const path = require('path');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const { connectToDatabase, getDb } = require('./db');
+const usersRouter = require('./routes/users');
+const groupsRouter = require('./routes/groups');
+const channelsRouter = require('./routes/channels');
+
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(express.static(path.join(__dirname, 'dist')));
+//Middleware
+app.use(cors());
+app.use(bodyParser.json());
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../src/index.html'));
-});
+//Connect to MongoDB
+connectToDatabase().catch(console.error);
 
+//Use the routes
+app.use('/api/users', usersRouter);
+app.use('/api/groups', groupsRouter);
+app.use('/api/channels', channelsRouter);
+
+//Start the server
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Server is running on http://localhost:${port}`);
 });
