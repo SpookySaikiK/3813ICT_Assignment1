@@ -14,9 +14,13 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 export class ChatComponent implements OnInit {
   groups: { id: number, name: string, ownerName: string, admins: number[], members: number[] }[] = [];
+  allGroups: { id: number; name: string; ownerName: string; admins: number[]; members: number[] }[] = [];
   channels: { id: number, name: string, groupId: number }[] = [];
-  messages: { channelId: number, username: string, text: string }[] = [];
+
+  messages: { channelId: number, username: string, text: string, timestamp: string }[] = [];
+  filteredMessages: { channelId: number, username: string, text: string, timestamp: string }[] = [];
   newMessage: string = '';
+
   newGroupName: string = '';
   newChannelName: string = '';
 
@@ -24,7 +28,6 @@ export class ChatComponent implements OnInit {
   selectedChannelId: number | null = null;
 
   filteredChannels: { id: number, name: string, groupId: number }[] = [];
-  filteredMessages: { channelId: number, username: string, text: string }[] = [];
 
   requests: { username: string, reason: string, groupId: number }[] = [];
   joinRequestGroupName: string = '';
@@ -82,7 +85,10 @@ export class ChatComponent implements OnInit {
           next: (data) => {
             //Filter channels based on the currently selected group
             this.channels = data.filter(channel => channel.groupId === this.selectedGroupId);
-            this.filteredChannels = this.channels; //Update filtered channels to display
+            //Exclude banned channels
+            this.filteredChannels = this.channels.filter(channel =>
+              !this.bannedUsers.some(ban => ban.channelId === channel.id && ban.username === this.loggedInUser.username)
+            );
           },
           error: (error) => {
             console.error('Error loading channels:', error);
@@ -93,18 +99,32 @@ export class ChatComponent implements OnInit {
 
 
   loadMessages() {
-    this.messages = JSON.parse(localStorage.getItem('messages') || '[]')
-
+    if (this.selectedChannelId !== null) {
+      this.http.get<{ channelId: number, username: string, text: string, timestamp: string }[]>(`http://localhost:3000/manageMessages/${this.selectedChannelId}`)
+        .subscribe({
+          next: (data) => {
+            this.filteredMessages = data;
+            console.log('Loaded messages:', this.filteredMessages);
+          },
+          error: (error) => {
+            console.error('Error loading messages:', error);
+          }
+        });
+    }
   }
 
+
   loadGroups() {
-    this.http.get<{ id: number, name: string, ownerName: string, admins: number[], members: number[] }[]>('http://localhost:3000/manageGroup')
+    this.http.get<{ id: number; name: string; ownerName: string; admins: number[]; members: number[] }[]>('http://localhost:3000/manageGroup')
       .subscribe({
         next: (data) => {
-          //Filter groups to only include those the user is a member of or if they are an admin
+          //Store all groups
+          this.allGroups = data;
+          //Filter groups for the logged-in user
           this.groups = data.filter(group =>
             group.members.includes(this.loggedInUser.id) || group.admins.includes(this.loggedInUser.id)
           );
+          console.log('Loaded all groups:', this.allGroups);
         },
         error: (error) => {
           console.error('Error loading groups:', error);
@@ -112,37 +132,44 @@ export class ChatComponent implements OnInit {
       });
   }
 
+
   selectGroup(groupId: number) {
     this.selectedGroupId = groupId;
     this.selectedChannelId = null;
-
-    const bannedChannelIds = this.bannedUsers
-      .filter(ban => ban.username === this.loggedInUser.username)
-      .map(ban => ban.channelId);
-
-    this.filteredChannels = this.channels
-      .filter(channel => channel.groupId === groupId && !bannedChannelIds.includes(channel.id));
-
-    //Load channels when a group is selected
     this.loadChannels();
   }
 
 
   selectChannel(channelId: number) {
     this.selectedChannelId = channelId;
-    this.filteredMessages = this.messages.filter(message => message.channelId === channelId);
+    this.loadMessages();
   }
 
   sendMessage() {
     if (this.selectedChannelId !== null && this.newMessage.trim() !== '') {
-      const newMsg = { channelId: this.selectedChannelId, username: this.loggedInUser.username, text: this.newMessage.trim() };
-      this.messages.push(newMsg);
-      this.filteredMessages.push(newMsg);
-      this.newMessage = '';
-      localStorage.setItem('messages', JSON.stringify(this.messages));
-      setTimeout(() => this.scrollToBottom(), 0);
+      const messageData = {
+        channelId: this.selectedChannelId,
+        username: this.loggedInUser.username,
+        text: this.newMessage.trim(),
+        timestamp: new Date().toISOString()
+      };
+
+      this.http.post<{ message: string, sentMessage: any }>('http://localhost:3000/manageMessages/send', messageData).subscribe({
+        next: (response) => {
+          this.setFeedbackMessage(response.message, 'success');
+          this.newMessage = '';
+          this.loadMessages();
+        },
+        error: (error) => {
+          this.setFeedbackMessage('Error sending message: ' + error.message, 'error');
+        }
+      });
+    } else {
+      this.setFeedbackMessage('Message cannot be empty.', 'error');
     }
   }
+
+
 
   //Create-Delete Group
   createGroup() {
@@ -157,7 +184,7 @@ export class ChatComponent implements OnInit {
         next: (response) => {
           alert(response.message);
           this.newGroupName = '';
-          this.loadGroups(); //Reload groups to show the newly created one
+          this.loadGroups();
         },
         error: (error) => {
           alert('Error creating group: ' + error.message);
@@ -252,7 +279,7 @@ export class ChatComponent implements OnInit {
           this.filteredMessages = [];
         },
         error: (error) => {
-          alert('Error leaving group: ' + error.message); //Show error message
+          alert(error.message);
         }
       });
     } else {
@@ -265,84 +292,91 @@ export class ChatComponent implements OnInit {
   addMember() {
     this.clearFeedbackMessage();
     if (this.selectedGroupId !== null && this.newMemberUsername.trim() !== '') {
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const user = users.find((u: any) => u.username === this.newMemberUsername);
-      if (user) {
-        const groups = JSON.parse(localStorage.getItem('groups') || '[]');
-        const group = groups.find((g: any) => g.id === this.selectedGroupId);
-        if (group && !group.members.includes(user.id)) {
-          group.members.push(user.id);
-          localStorage.setItem('groups', JSON.stringify(groups));
+      const memberData = {
+        groupId: this.selectedGroupId,
+        username: this.newMemberUsername.trim()
+      };
+
+      console.log('Adding member with data:', memberData);
+
+      this.http.post<{ message: string }>('http://localhost:3000/manageGroup/addMember', memberData).subscribe({
+        next: (response) => {
+          this.setFeedbackMessage(response.message, 'success');
           this.newMemberUsername = '';
-          this.setFeedbackMessage('User added successfully!', 'success');
-        } else {
-          this.setFeedbackMessage('User is already a member of this group.', 'error');
+          this.loadGroups();
+        },
+        error: (error) => {
+          this.setFeedbackMessage((error.error.message || error.message), 'error');
         }
-      } else {
-        this.setFeedbackMessage('No such user exists.', 'error');
-      }
+      });
+    } else {
+      this.setFeedbackMessage('No group selected or username is empty.', 'error');
     }
   }
 
   removeMember() {
     this.clearFeedbackMessage();
     if (this.selectedGroupId !== null && this.removeMemberUsername.trim() !== '') {
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const user = users.find((u: any) => u.username === this.removeMemberUsername);
-      if (user) {
-        const groups = JSON.parse(localStorage.getItem('groups') || '[]');
-        const group = groups.find((g: any) => g.id === this.selectedGroupId);
-        if (group && group.members.includes(user.id)) {
-          group.members = group.members.filter((memberId: number) => memberId !== user.id);
-          localStorage.setItem('groups', JSON.stringify(groups));
-          this.removeMemberUsername = '';
-          this.setFeedbackMessage('User removed successfully!', 'success');
-        } else {
-          this.setFeedbackMessage('User is not a member of this group.', 'error');
+      const memberData = {
+        groupId: this.selectedGroupId,
+        username: this.removeMemberUsername
+      };
+
+      console.log('Removing member with data:', memberData);
+
+      this.http.post<{ message: string }>('http://localhost:3000/manageGroup/removeMember', memberData).subscribe({
+        next: (response) => {
+          this.setFeedbackMessage(response.message, 'success');
+          this.loadGroups(); 
+          this.removeMemberUsername = ''; 
+        },
+        error: (error) => {
+          this.setFeedbackMessage((error.error.message || error.message), 'error');
         }
-      } else {
-        this.setFeedbackMessage('No such user exists.', 'error');
-      }
+      });
+    } else {
+      this.setFeedbackMessage('No group selected or username is empty.', 'error');
     }
   }
+
+
 
 
   //Submit-View Join Request
   submitJoinRequest() {
     if (this.joinRequestGroupName.trim() !== '') {
-      const allGroups = JSON.parse(localStorage.getItem('groups') || '[]');
-      const group = allGroups.find((group: any) => group.name === this.joinRequestGroupName.trim());
+      const group = this.allGroups.find(g => g.name === this.joinRequestGroupName.trim());
       if (group) {
         const isMember = group.members.includes(this.loggedInUser.id);
         if (isMember) {
           this.setFeedbackMessage('You are already a member of this group.', 'error');
           return;
         }
-        const existingRequest = this.requests.find(request =>
-          request.username === this.loggedInUser.username &&
-          request.groupId === group.id
-        );
-        if (existingRequest) {
-          this.setFeedbackMessage('You already have a pending request for this group.', 'error');
-        } else {
-          const request = {
-            username: this.loggedInUser.username,
-            reason: 'has requested to join the group.',
-            groupId: group.id
-          };
-          this.requests.push(request);
-          localStorage.setItem('requests', JSON.stringify(this.requests));
-          this.setFeedbackMessage('Request sent!', 'success');
-        }
+        const requestData = {
+          groupId: group.id,
+          username: this.loggedInUser.username,
+          reason: 'has requested to join the group'
+        };
+
+        this.http.post<{ message: string }>('http://localhost:3000/manageRequests/request', requestData).subscribe({
+          next: (response) => {
+            this.setFeedbackMessage('Request sent!', 'success');
+            this.loadRequests();
+          },
+          error: (error) => {
+            this.setFeedbackMessage('Error sending request: ' + error.message, 'error');
+          }
+        });
       } else {
         this.setFeedbackMessage('No such Group exists.', 'error');
       }
     }
   }
 
+  //Request
   requestAdminRights() {
     if (this.selectedGroupId !== null) {
-      const group = this.groups.find(g => g.id === this.selectedGroupId);
+      const group = this.allGroups.find(g => g.id === this.selectedGroupId);
       if (group) {
         const existingRequest = this.requests.find(request =>
           request.username === this.loggedInUser.username &&
@@ -353,91 +387,104 @@ export class ChatComponent implements OnInit {
           this.setFeedbackMessage('You already have a pending admin request for this group.', 'error');
         } else if (group.admins.includes(this.loggedInUser.id)) {
           this.setFeedbackMessage('You are already an admin of this group.', 'error');
-        }
-        else {
-          const request = {
+        } else {
+          const requestData = {
+            groupId: this.selectedGroupId,
             username: this.loggedInUser.username,
-            reason: 'has requested admin rights for this group.',
-            groupId: this.selectedGroupId
+            reason: 'has requested admin rights for this group'
           };
-          this.requests.push(request);
-          localStorage.setItem('requests', JSON.stringify(this.requests));
-          this.setFeedbackMessage('Admin request sent!', 'success');
+
+          this.http.post<{ message: string }>('http://localhost:3000/manageRequests/request', requestData).subscribe({
+            next: (response) => {
+              this.setFeedbackMessage('Admin request sent!', 'success');
+              this.loadRequests();
+            },
+            error: (error) => {
+              this.setFeedbackMessage('Error sending request: ' + error.message, 'error');
+            }
+          });
         }
       } else {
         this.setFeedbackMessage('No such Group exists.', 'error');
       }
-      this.loadGroups();
     }
   }
+
+
+
 
   promoteMember(newMemberUsername: string, role: 'superAdmin' | 'groupAdmin') {
     this.clearFeedbackMessage();
     if (this.selectedGroupId !== null && newMemberUsername.trim() !== '') {
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const user = users.find((u: any) => u.username === newMemberUsername);
-      if (user) {
-        const groups = JSON.parse(localStorage.getItem('groups') || '[]');
-        const group = groups.find((g: any) => g.id === this.selectedGroupId);
-        if (group) {
-          if (role === 'groupAdmin') {
-            if (!group.admins.includes(user.id)) {
-              group.admins.push(user.id);
-              this.setFeedbackMessage('User promoted to Group Admin successfully!', 'success');
-            } else {
-              this.setFeedbackMessage('User is already a Group Admin.', 'error');
-            }
-          } else if (role === 'superAdmin') {
-            if (!user.roles.includes('superAdmin')) {
-              user.roles.push('superAdmin');
-              this.setFeedbackMessage('User promoted to Super Admin successfully!', 'success');
-            } else {
-              this.setFeedbackMessage('User is already a Super Admin.', 'error');
-            }
-          }
-          localStorage.setItem('groups', JSON.stringify(groups));
-          localStorage.setItem('users', JSON.stringify(users));
-          this.requests = this.requests.filter(request => request.username !== user.username);
-          localStorage.setItem('requests', JSON.stringify(this.requests));
-        } else {
-          this.setFeedbackMessage('No such group exists.', 'error');
+      const requestData = {
+        username: newMemberUsername.trim(),
+        role: role
+      };
+
+      console.log('Promoting member with data:', requestData);
+
+      this.http.post<{ message: string }>('http://localhost:3000/manageGroup/promote', requestData).subscribe({
+        next: (response) => {
+          this.setFeedbackMessage(response.message, 'success');
+          this.loadGroups();
+        },
+        error: (error) => {
+          this.setFeedbackMessage('Error promoting user: ' + (error.error.message || error.message), 'error');
         }
-      } else {
-        this.setFeedbackMessage('No such user exists.', 'error');
-      }
+      });
+    } else {
+      this.setFeedbackMessage('No group selected or username is empty.', 'error');
     }
   }
 
+
+
   loadRequests() {
-    const allRequests: { username: string; reason: string; groupId: number }[] = JSON.parse(localStorage.getItem('requests') || '[]');
     if (this.selectedGroupId !== null) {
-      this.requests = allRequests.filter((request: { username: string; reason: string; groupId: number }) => request.groupId === this.selectedGroupId);
-    } else {
-      this.requests = allRequests;
+      this.http.get<{ username: string; reason: string; groupId: number }[]>(`http://localhost:3000/manageRequests/${this.selectedGroupId}`)
+        .subscribe({
+          next: (data) => {
+            this.requests = data;
+          },
+          error: (error) => {
+            console.error('Error loading requests:', error);
+          }
+        });
     }
   }
 
   approveRequest(username: string) {
-    if (this.selectedGroupId !== null) {
-      const groups = JSON.parse(localStorage.getItem('groups') || '[]');
-      const group = groups.find((g: any) => g.id === this.selectedGroupId);
-      const user = JSON.parse(localStorage.getItem('users') || '[]').find((u: any) => u.username === username);
-      if (group && user) {
-        group.members.push(user.id);
-        localStorage.setItem('groups', JSON.stringify(groups));
-        this.requests = this.requests.filter(request => request.username !== username);
-        localStorage.setItem('requests', JSON.stringify(this.requests));
-        this.setFeedbackMessage('Request approved!', 'success');
+    const requestData = {
+      groupId: this.selectedGroupId,
+      username: username,
+    };
+    console.log('Approving request for:', { username });
+    this.http.post<{ message: string }>('http://localhost:3000/manageRequests/approve', requestData).subscribe({
+      next: (response) => {
+        alert(response.message);
+        this.loadRequests();
+      },
+      error: (error) => {
+        alert('Error approving request: ' + error.message);
       }
-    }
+    });
   }
 
   rejectRequest(username: string) {
-    if (this.selectedGroupId !== null) {
-      this.requests = this.requests.filter(request => request.username !== username);
-      localStorage.setItem('requests', JSON.stringify(this.requests));
-      this.setFeedbackMessage('Request rejected.', 'error');
-    }
+    const requestData = {
+      groupId: this.selectedGroupId,
+      username: username,
+    };
+
+    this.http.post<{ message: string }>('http://localhost:3000/manageRequests/reject', requestData).subscribe({
+      next: (response) => {
+        alert(response.message);
+        this.loadRequests();
+      },
+      error: (error) => {
+        alert('Error rejecting request: ' + error.message);
+      }
+    });
   }
 
   showViewRequestsModal(groupId: number) {
@@ -458,31 +505,56 @@ export class ChatComponent implements OnInit {
   }
 
   showJoinRequests() {
-    return this.requests.filter(request => request.reason === 'has requested to join the group.');
+    return this.requests.filter(request => request.reason === 'has requested to join the group');
   }
 
   showAdminRequests() {
-    return this.requests.filter(request => request.reason === 'has requested admin rights for this group.');
+    return this.requests.filter(request => request.reason === 'has requested admin rights for this group');
   }
 
-  //Ban User
+
+  //Ban User from Channel
   banUserFromChannel() {
-    const channel = this.channels.find(c => c.id === this.selectedChannelId);
-    const bannedUsers = JSON.parse(localStorage.getItem('bannedUsers') || '[]');
-    const newBan = {
-      channelId: this.selectedChannelId,
-      username: this.banUserName,
-      reason: this.banReason
-    };
-    bannedUsers.push(newBan);
-    localStorage.setItem('bannedUsers', JSON.stringify(bannedUsers));
-    this.setFeedbackMessage('User banned successfully!', 'success');
-    this.hideBanUserModal();
+    if (this.selectedChannelId !== null && this.banUserName.trim() !== '') {
+      const banData = {
+        channelId: this.selectedChannelId,
+        username: this.banUserName.trim(),
+        reason: this.banReason
+      };
+
+      this.http.post<{ message: string }>('http://localhost:3000/manageChannel/ban', banData).subscribe({
+        next: (response) => {
+          this.setFeedbackMessage(response.message, 'success');
+          this.banUserName = '';
+          this.banReason = '';
+          this.loadBannedUsers(); 
+          this.loadChannels(); 
+        },
+        error: (error) => {
+          this.setFeedbackMessage('Error banning user: ' + (error.error.message || error.message), 'error');
+        }
+      });
+    } else {
+      this.setFeedbackMessage('Channel or username cannot be empty.', 'error');
+    }
   }
 
+
+
+  //Load banned users from JSON
   loadBannedUsers() {
-    this.bannedUsers = JSON.parse(localStorage.getItem('bannedUsers') || '[]');
+    this.http.get<{ channelId: number, username: string, reason: string }[]>('http://localhost:3000/manageChannel/bannedUsers')
+      .subscribe({
+        next: (data) => {
+          this.bannedUsers = data;
+          console.log('Loaded banned users:', this.bannedUsers);
+        },
+        error: (error) => {
+          console.error('Error loading banned users:', error);
+        }
+      });
   }
+
 
   showBanUserModal() {
     this.banUserName = '';
@@ -496,8 +568,8 @@ export class ChatComponent implements OnInit {
 
   // Reports
   banReports() {
-    const bannedUsers = JSON.parse(localStorage.getItem('bannedUsers') || '[]');
-    this.banReportsList = bannedUsers.filter((ban: any) => ban.channelId === this.selectedChannelId);
+    const channelId = this.selectedChannelId;
+    this.banReportsList = this.bannedUsers.filter(ban => ban.channelId === channelId);
   }
 
   showBanReportsModal() {

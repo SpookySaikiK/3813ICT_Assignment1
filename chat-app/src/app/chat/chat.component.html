@@ -42,7 +42,9 @@
             <p>Currently chatting in channel ID: {{ selectedChannelId }}</p>
             <div id="messagesContainer" class="messages">
                 <div *ngFor="let message of filteredMessages" class="message">
-                    {{ message.username }}: {{ message.text }}
+                    <strong>{{ message.username }}: </strong>
+                    <span>{{ message.text }} </span>
+                    <small class="timestamp">{{ message.timestamp | date: 'short' }}</small>
                 </div>
             </div>
             <input type="text" [(ngModel)]="newMessage" placeholder="Type a message..." (keyup.enter)="sendMessage()">
@@ -57,7 +59,8 @@
             (click)="showBanUserModal()" class="manage-button">
             Ban User
         </button>
-        <button *ngIf="windowLoaded() && selectedGroupId !== null && selectedChannelId !== null && isGroupAdmin(selectedGroupId)"
+        <button
+            *ngIf="windowLoaded() && selectedGroupId !== null && selectedChannelId !== null && isGroupAdmin(selectedGroupId)"
             (click)="showBanReportsModal()" class="manage-button">
             Reports
         </button>
@@ -166,7 +169,7 @@
                         <li *ngFor="let request of showAdminRequests()">
                             <div>{{ request.username }}: {{ request.reason }}</div>
                             <div class="approve-reject-buttons">
-                                <button class="approve" (click)="promoteMember(request.username, 'groupAdmin')">Approve</button>
+                                <button class="approve" (click)="approveRequest(request.username)">Approve</button>
                                 <button class="reject" (click)="rejectRequest(request.username)">Reject</button>
                             </div>
                         </li>

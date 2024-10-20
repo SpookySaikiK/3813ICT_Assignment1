@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const router = express.Router();
 const channelsFilePath = path.join(__dirname, '../data/channels.json');
+const bannedUsersFilePath = path.join(__dirname, '../data/bannedUsers.json');
 
 //Load channels from JSON
 const loadChannels = () => {
@@ -15,6 +16,19 @@ const loadChannels = () => {
 //Save channels to JSON
 const saveChannels = (data) => {
     fs.writeFileSync(channelsFilePath, JSON.stringify(data, null, 2));
+};
+
+//Load banned users from JSON
+const loadBannedUsers = () => {
+    if (fs.existsSync(bannedUsersFilePath)) {
+        return JSON.parse(fs.readFileSync(bannedUsersFilePath, 'utf8'));
+    }
+    return [];
+};
+
+//Save banned users to JSON
+const saveBannedUsers = (data) => {
+    fs.writeFileSync(bannedUsersFilePath, JSON.stringify(data, null, 2));
 };
 
 //Create Channel Route
@@ -59,4 +73,22 @@ router.delete('/delete/:id', (req, res) => {
     return res.status(200).send({ message: 'Channel deleted successfully' });
 });
 
+//Ban User from Channel
+router.post('/ban', (req, res) => {
+    const { channelId, username, reason } = req.body;
+    const bannedUsers = loadBannedUsers();
+
+    //Add  user to banned users list
+    bannedUsers.push({ channelId, username, reason });
+    fs.writeFileSync(bannedUsersFilePath, JSON.stringify(bannedUsers, null, 2));
+
+    return res.status(200).send({ message: 'User banned successfully' });
+});
+
+
+//Get all banned users Route
+router.get('/bannedUsers', (req, res) => {
+    const bannedUsers = loadBannedUsers();
+    return res.status(200).json(bannedUsers);
+});
 module.exports = router;

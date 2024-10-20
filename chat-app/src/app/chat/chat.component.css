@@ -250,3 +250,8 @@ button:hover {
 .manage-row .div{
     width: 500px;
 }
+
+.timestamp {
+    font-size: 10px;
+    color: gray; 
+  }
