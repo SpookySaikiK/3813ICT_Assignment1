@@ -1,94 +1,86 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const router = express.Router();
-const channelsFilePath = path.join(__dirname, '../data/channels.json');
-const bannedUsersFilePath = path.join(__dirname, '../data/bannedUsers.json');
-
-//Load channels from JSON
-const loadChannels = () => {
-    if (fs.existsSync(channelsFilePath)) {
-        return JSON.parse(fs.readFileSync(channelsFilePath, 'utf8'));
-    }
-    return [];
-};
-
-//Save channels to JSON
-const saveChannels = (data) => {
-    fs.writeFileSync(channelsFilePath, JSON.stringify(data, null, 2));
-};
-
-//Load banned users from JSON
-const loadBannedUsers = () => {
-    if (fs.existsSync(bannedUsersFilePath)) {
-        return JSON.parse(fs.readFileSync(bannedUsersFilePath, 'utf8'));
-    }
-    return [];
-};
-
-//Save banned users to JSON
-const saveBannedUsers = (data) => {
-    fs.writeFileSync(bannedUsersFilePath, JSON.stringify(data, null, 2));
-};
+const { getDb } = require('../db');
 
 //Create Channel Route
-router.post('/create', (req, res) => {
+router.post('/create', async (req, res) => {
     const { name, groupId } = req.body;
-    const channels = loadChannels();
+    const db = getDb();
 
-    //Find the next available channel ID
-    const newChannelId = channels.length > 0 ? Math.max(...channels.map(c => c.id)) + 1 : 1;
+    try {
+        const channels = await db.collection('channels').find().toArray();
 
-    const newChannel = {
-        id: newChannelId,
-        name,
-        groupId
-    };
+        //Calculate the next available ID based on existing channels
+        const existingIds = channels.map(channel => channel.id);
+        const nextId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
 
-    channels.push(newChannel);
-    saveChannels(channels);
-    return res.status(201).send({ message: 'Channel created successfully', channel: newChannel });
+        const newChannel = {
+            id: nextId,
+            name,
+            groupId
+        };
+
+        await db.collection('channels').insertOne(newChannel);
+        return res.status(201).send({ message: 'Channel created successfully', channel: newChannel });
+    } catch (error) {
+        console.error('Error creating channel:', error);
+        return res.status(500).send({ message: 'Error creating channel' });
+    }
 });
 
 //Get all channels Route
-router.get('/', (req, res) => {
-    const channels = loadChannels();
-    return res.status(200).json(channels);
+router.get('/', async (req, res) => {
+    const db = getDb();
+
+    try {
+        const channels = await db.collection('channels').find().toArray();
+        return res.status(200).json(channels);
+    } catch (error) {
+        return res.status(500).send({ message: 'Error fetching channels' });
+    }
 });
 
 //Delete Channel Route
-router.delete('/delete/:id', (req, res) => {
+router.delete('/delete/:id', async (req, res) => {
     const { id } = req.params;
-    let channels = loadChannels();
+    const db = getDb();
 
-    //Check if channel exists
-    const channelExists = channels.some(c => c.id === parseInt(id));
-    if (!channelExists) {
-        return res.status(404).send({ message: 'Channel not found' });
+    try {
+        const result = await db.collection('channels').deleteOne({ id: parseInt(id) });
+        if (result.deletedCount === 0) {
+            return res.status(404).send({ message: 'Channel not found' });
+        }
+        return res.status(200).send({ message: 'Channel deleted successfully' });
+    } catch (error) {
+        return res.status(500).send({ message: 'Error deleting channel' });
     }
-
-    //Remove the channel
-    channels = channels.filter(c => c.id !== parseInt(id));
-    saveChannels(channels);
-    return res.status(200).send({ message: 'Channel deleted successfully' });
 });
 
 //Ban User from Channel
-router.post('/ban', (req, res) => {
+router.post('/ban', async (req, res) => {
     const { channelId, username, reason } = req.body;
-    const bannedUsers = loadBannedUsers();
+    const db = getDb();
 
-    //Add  user to banned users list
-    bannedUsers.push({ channelId, username, reason });
-    fs.writeFileSync(bannedUsersFilePath, JSON.stringify(bannedUsers, null, 2));
+    const newBan = { channelId, username, reason };
 
-    return res.status(200).send({ message: 'User banned successfully' });
+    try {
+        await db.collection('bannedUsers').insertOne(newBan);
+        return res.status(200).send({ message: 'User banned successfully' });
+    } catch (error) {
+        return res.status(500).send({ message: 'Error banning user' });
+    }
 });
-
 
 //Get all banned users Route
-router.get('/bannedUsers', (req, res) => {
-    const bannedUsers = loadBannedUsers();
-    return res.status(200).json(bannedUsers);
+router.get('/bannedUsers', async (req, res) => {
+    const db = getDb();
+
+    try {
+        const bannedUsers = await db.collection('bannedUsers').find().toArray();
+        return res.status(200).json(bannedUsers);
+    } catch (error) {
+        return res.status(500).send({ message: 'Error fetching banned users' });
+    }
 });
+
 module.exports = router;

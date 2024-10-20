@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
+const { connectToDatabase } = require('./db');
 
 //Routes
 const registerUserRouter = require('./router/registerUser');
@@ -20,6 +21,9 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
+
+//Connect to MongoDB
+connectToDatabase().catch(console.error);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());

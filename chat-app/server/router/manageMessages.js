@@ -1,52 +1,44 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const router = express.Router();
-const messagesFilePath = path.join(__dirname, '../data/messages.json');
-
-//Load messages from JSON
-const loadMessages = () => {
-    if (fs.existsSync(messagesFilePath)) {
-        return JSON.parse(fs.readFileSync(messagesFilePath, 'utf8'));
-    }
-    return [];
-};
-
-//Save messages to JSON
-const saveMessages = (data) => {
-    fs.writeFileSync(messagesFilePath, JSON.stringify(data, null, 2));
-};
-
+const { getDb } = require('../db');
 
 //Send message route
-router.post('/send', (req, res) => {
-    const { channelId, username, text, timestamp } = req.body;
+router.post('/send', async (req, res) => {
+    const { channelId, username, text } = req.body;
+    const db = getDb();
 
-    //Load existing messages
-    const messages = loadMessages();
+    if (!channelId || !username || !text) {
+        return res.status(400).send({ message: 'Channel ID, username, and text are required.' });
+    }
 
-    //Create a new message object
     const newMessage = {
         channelId,
         username,
         text,
-        timestamp
+        timestamp: new Date()
     };
 
-    //Add the new message to the messages array
-    messages.push(newMessage);
-    saveMessages(messages); //Save the updated messages
-
-    return res.status(200).send({ message: 'Message sent successfully', sentMessage: newMessage });
+    try {
+        const result = await db.collection('messages').insertOne(newMessage);
+        return res.status(200).send({ message: 'Message sent successfully', sentMessage: newMessage });
+    } catch (error) {
+        console.error('Error sending message:', error);
+        return res.status(500).send({ message: 'Error sending message' });
+    }
 });
 
 //Route to get messages for a specific channel
-router.get('/:channelId', (req, res) => {
+router.get('/:channelId', async (req, res) => {
     const { channelId } = req.params;
-    const messages = loadMessages();
-    const channelMessages = messages.filter(msg => msg.channelId === parseInt(channelId));
-    return res.status(200).json(channelMessages);
-});
+    const db = getDb();
 
+    try {
+        const messages = await db.collection('messages').find({ channelId: parseInt(channelId) }).toArray();
+        return res.status(200).json(messages);
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+        return res.status(500).send({ message: 'Error fetching messages' });
+    }
+});
 
 module.exports = router;

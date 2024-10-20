@@ -223,16 +223,17 @@ export class ChatComponent implements OnInit {
         groupId: this.selectedGroupId
       };
 
-      this.http.post<{ message: string }>('http://localhost:3000/manageChannel/create', channelData).subscribe({
-        next: (response) => {
-          alert(response.message);
-          this.newChannelName = '';
-          this.loadChannels(); //Reload channels after creation
-        },
-        error: (error) => {
-          alert('Error creating channel: ' + error.message);
-        }
-      });
+      this.http.post<{ message: string; channel: any }>('http://localhost:3000/manageChannel/create', channelData)
+        .subscribe({
+          next: (response) => {
+            alert(response.message);
+            this.newChannelName = '';
+            this.loadChannels();
+          },
+          error: (error) => {
+            alert('Error creating channel: ' + error.message);
+          }
+        });
     } else {
       alert('Channel name is required and a group must be selected!');
     }
@@ -327,8 +328,8 @@ export class ChatComponent implements OnInit {
       this.http.post<{ message: string }>('http://localhost:3000/manageGroup/removeMember', memberData).subscribe({
         next: (response) => {
           this.setFeedbackMessage(response.message, 'success');
-          this.loadGroups(); 
-          this.removeMemberUsername = ''; 
+          this.loadGroups();
+          this.removeMemberUsername = '';
         },
         error: (error) => {
           this.setFeedbackMessage((error.error.message || error.message), 'error');
@@ -527,8 +528,8 @@ export class ChatComponent implements OnInit {
           this.setFeedbackMessage(response.message, 'success');
           this.banUserName = '';
           this.banReason = '';
-          this.loadBannedUsers(); 
-          this.loadChannels(); 
+          this.loadBannedUsers();
+          this.loadChannels();
         },
         error: (error) => {
           this.setFeedbackMessage('Error banning user: ' + (error.error.message || error.message), 'error');
