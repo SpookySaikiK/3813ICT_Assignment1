@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { io } from 'socket.io-client';
 
 @Component({
   selector: 'app-chat',
@@ -55,7 +56,13 @@ export class ChatComponent implements OnInit {
   showBanUserForm: boolean = false;
   showBanReportsForm: boolean = false;
 
-  constructor(private router: Router, private http: HttpClient) { };
+  private socket: any;
+
+  constructor(private router: Router, private http: HttpClient) {
+    if (!this.socket) {
+      this.initializeSocket();
+    }
+  }
 
   ngOnInit(): void {
     if (typeof window !== 'undefined') {
@@ -78,6 +85,15 @@ export class ChatComponent implements OnInit {
     return typeof window !== 'undefined'
   }
 
+  initializeSocket() {
+    this.socket = io('http://localhost:3000');
+
+    this.socket.on('message', (message: any) => {
+      this.filteredMessages.push(message); //Add new message to the message list
+      setTimeout(() => this.scrollToBottom(), 0); //Scroll to the bottom to see the latest message
+    });
+  }
+
   loadChannels() {
     if (this.selectedGroupId !== null) {
       this.http.get<{ id: number, name: string, groupId: number }[]>('http://localhost:3000/manageChannel')
@@ -98,20 +114,27 @@ export class ChatComponent implements OnInit {
   }
 
 
-  loadMessages() {
-    if (this.selectedChannelId !== null) {
-      this.http.get<{ channelId: number, username: string, text: string, timestamp: string }[]>(`http://localhost:3000/manageMessages/${this.selectedChannelId}`)
-        .subscribe({
-          next: (data) => {
-            this.filteredMessages = data;
-            console.log('Loaded messages:', this.filteredMessages);
-          },
-          error: (error) => {
-            console.error('Error loading messages:', error);
-          }
-        });
-    }
+  loadMessages(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this.selectedChannelId !== null) {
+        this.http.get<{ channelId: number, username: string, text: string, timestamp: string }[]>(`http://localhost:3000/manageMessages/${this.selectedChannelId}`)
+          .subscribe({
+            next: (data) => {
+              this.filteredMessages = data;
+              console.log('Loaded messages:', this.filteredMessages);
+              resolve(); //Resolve promise when messages are loaded
+            },
+            error: (error) => {
+              console.error('Error loading messages:', error);
+              reject(error); //Reject promise if there is an error
+            }
+          });
+      } else {
+        resolve(); //If no channel is selected, resolve immediately
+      }
+    });
   }
+
 
 
   loadGroups() {
@@ -134,6 +157,10 @@ export class ChatComponent implements OnInit {
 
 
   selectGroup(groupId: number) {
+    if (this.selectedChannelId !== null) {
+      //Emit leave event for the current channel before switching group
+      this.socket.emit('leaveChannel', this.selectedChannelId);
+    }
     this.selectedGroupId = groupId;
     this.selectedChannelId = null;
     this.loadChannels();
@@ -141,8 +168,21 @@ export class ChatComponent implements OnInit {
 
 
   selectChannel(channelId: number) {
+    if (this.selectedChannelId !== null && this.selectedChannelId != channelId) {
+      //Emit leave event for the current channel before switching channels
+      this.socket.emit('leaveChannel', this.selectedChannelId);
+    }
     this.selectedChannelId = channelId;
-    this.loadMessages();
+
+    //Load messages and scroll to the bottom after loading is complete
+    this.loadMessages()
+      .then(() => {
+        this.socket.emit('joinChannel', channelId);
+        this.scrollToBottom();
+      })
+      .catch((error: any) => {
+        console.error('Failed to load messages:', error);
+      });
   }
 
   sendMessage() {
@@ -154,22 +194,23 @@ export class ChatComponent implements OnInit {
         timestamp: new Date().toISOString()
       };
 
-      this.http.post<{ message: string, sentMessage: any }>('http://localhost:3000/manageMessages/send', messageData).subscribe({
-        next: (response) => {
-          this.setFeedbackMessage(response.message, 'success');
-          this.newMessage = '';
-          this.loadMessages();
-        },
-        error: (error) => {
-          this.setFeedbackMessage('Error sending message: ' + error.message, 'error');
-        }
-      });
+      this.socket.emit('sendMessage', { channelId: this.selectedChannelId, message: messageData });
+      this.newMessage = '';
+      setTimeout(() => this.scrollToBottom(), 0);
     } else {
       this.setFeedbackMessage('Message cannot be empty.', 'error');
     }
   }
 
 
+
+  //Handle channel leave logic
+  ngOnDestroy(): void {
+    if (this.selectedChannelId) {
+      this.socket.emit('leaveChannel', this.selectedChannelId);
+    }
+    this.socket.disconnect();
+  }
 
   //Create-Delete Group
   createGroup() {

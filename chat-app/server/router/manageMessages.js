@@ -1,15 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { getDb } = require('../db');
+const { Server } = require('socket.io');
 
 //Send message route
 router.post('/send', async (req, res) => {
     const { channelId, username, text } = req.body;
     const db = getDb();
-
-    if (!channelId || !username || !text) {
-        return res.status(400).send({ message: 'Channel ID, username, and text are required.' });
-    }
 
     const newMessage = {
         channelId,
@@ -19,7 +16,7 @@ router.post('/send', async (req, res) => {
     };
 
     try {
-        const result = await db.collection('messages').insertOne(newMessage);
+        await db.collection('messages').insertOne(newMessage);
         return res.status(200).send({ message: 'Message sent successfully', sentMessage: newMessage });
     } catch (error) {
         console.error('Error sending message:', error);
