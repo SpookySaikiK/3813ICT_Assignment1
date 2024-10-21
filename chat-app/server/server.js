@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
-const { connectToDatabase, getDb } = require('./db'); 
+const { connectToDatabase, getDb } = require('./db');
 const { Server } = require('socket.io');
 
 //Routes
@@ -13,6 +13,7 @@ const manageChannelRouter = require('./router/manageChannel');
 const manageRequestsRouter = require('./router/manageRequests');
 const manageMessagesRouter = require('./router/manageMessages');
 const uploadAvatarRouter = require('./router/uploadAvatar');
+const imageUploadRouter = require('./router/imageUpload');
 
 
 const PORT = 3000;
@@ -60,17 +61,20 @@ app.use('/manageMessages', manageMessagesRouter);
 app.use('/uploadAvatar', uploadAvatarRouter);
 app.use('/uploads', express.static('uploads'));
 
+app.use('/uploadImage', imageUploadRouter);
+
 
 //Socket connection handling
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 
-    socket.on('joinChannel', async (channelId) => {
+    socket.on('joinChannel', async (data) => {
+        const { channelId, username } = data;
         socket.join(channelId);
-        console.log(`User joined channel: ${channelId}`);
-        
+        console.log(`${username} joined channel: ${channelId}`);
+
         const joinMessage = {
-            text: 'User has entered the channel',
+            text: `${username} has entered the channel`,
             username: 'System',
             avatar: "http://localhost:3000/uploads/avatar/system-avatar.png",
             timestamp: new Date(),
@@ -100,12 +104,13 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('leaveChannel', async (channelId) => {
+    socket.on('leaveChannel', async (data) => {
+        const { channelId, username } = data;
         socket.leave(channelId);
-        console.log(`User left channel: ${channelId}`);
+        console.log(`${username} left channel: ${channelId}`);
 
         const leaveMessage = {
-            text: 'User has left the channel',
+            text: `${username} has left the channel`,
             username: 'System',
             avatar: "http://localhost:3000/uploads/avatar/system-avatar.png",
             timestamp: new Date(),

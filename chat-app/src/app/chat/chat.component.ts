@@ -18,8 +18,8 @@ export class ChatComponent implements OnInit {
   allGroups: { id: number; name: string; ownerName: string; admins: number[]; members: number[] }[] = [];
   channels: { id: number, name: string, groupId: number }[] = [];
 
-  messages: { channelId: number, username: string, text: string, avatar: string, timestamp: string }[] = [];
-  filteredMessages: { channelId: number, username: string, text: string, avatar: string, timestamp: string }[] = [];
+  messages: { channelId: number, username: string, text: string, avatar: string, timestamp: string, image?: string }[] = [];
+  filteredMessages: { channelId: number, username: string, text: string, avatar: string, timestamp: string, image?: string }[] = [];
 
   newMessage: string = '';
 
@@ -56,6 +56,8 @@ export class ChatComponent implements OnInit {
   bannedUsers: { channelId: number, username: string, reason: string }[] = [];
   showBanUserForm: boolean = false;
   showBanReportsForm: boolean = false;
+
+  selectedFile: File | null = null;
 
   private socket: any;
 
@@ -161,7 +163,7 @@ export class ChatComponent implements OnInit {
   selectGroup(groupId: number) {
     if (this.selectedChannelId !== null) {
       //Emit leave event for the current channel before switching group
-      this.socket.emit('leaveChannel', this.selectedChannelId);
+      this.socket.emit('leaveChannel', {channelId: this.selectedChannelId, username: this.loggedInUser.username});
     }
     this.selectedGroupId = groupId;
     this.selectedChannelId = null;
@@ -170,17 +172,22 @@ export class ChatComponent implements OnInit {
 
 
   selectChannel(channelId: number) {
+    if (this.selectedChannelId == channelId){
+      return
+    }
+
     if (this.selectedChannelId !== null && this.selectedChannelId != channelId) {
       //Emit leave event for the current channel before switching channels
-      this.socket.emit('leaveChannel', this.selectedChannelId);
+      this.socket.emit('leaveChannel', {channelId: this.selectedChannelId, username: this.loggedInUser.username});
     }
+    
     this.selectedChannelId = channelId;
 
     //Load messages and scroll to the bottom after loading is complete
     this.loadMessages()
       .then(() => {
-        this.socket.emit('joinChannel', channelId);
-        this.scrollToBottom();
+        this.socket.emit('joinChannel', {channelId: this.selectedChannelId, username: this.loggedInUser.username});
+        setTimeout(() => {this.scrollToBottom()}, 50);
       })
       .catch((error: any) => {
         console.error('Failed to load messages:', error);
@@ -205,12 +212,61 @@ export class ChatComponent implements OnInit {
     }
   }
 
+  onFileSelected(event: any): void {
+    this.selectedFile = event.target.files[0] || null;
+  }
+
+  //Send the selected image
+  sendImage(): void {
+    if (this.selectedChannelId !== null && this.selectedFile) {
+      const formData = new FormData();
+      formData.append('image', this.selectedFile);
+      formData.append('channelId', this.selectedChannelId.toString());
+      formData.append('username', this.loggedInUser.username);
+
+      //Send the image file to the server
+      this.http.post<{ message: string, image: string }>('http://localhost:3000/uploadImage', formData)
+        .subscribe({
+          next: (response) => {
+            console.log('Image sent successfully:', response.message);
+            const imageMessage = {
+              channelId: this.selectedChannelId,
+              username: this.loggedInUser.username,
+              avatar: 'http://localhost:3000/' + this.loggedInUser.avatar,
+              text: '',
+              image: response.image,
+              timestamp: new Date().toISOString()
+            };
+
+            //Emit the message to the socket server to update in real time
+            this.socket.emit('sendMessage', { channelId: this.selectedChannelId, message: imageMessage });
+
+            //Clear Selection
+            this.selectedFile = null;
+            const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+            if (fileInput) {
+              fileInput.value = '';
+            }
+
+            setTimeout(() => this.scrollToBottom(), 50);
+          },
+          error: (error) => {
+            console.error('Error sending image:', error);
+          }
+        });
+    } else {
+      console.error('No file selected or channel not selected');
+    }
+  }
+
+
+
 
 
   //Handle channel leave logic
   ngOnDestroy(): void {
     if (this.selectedChannelId) {
-      this.socket.emit('leaveChannel', this.selectedChannelId);
+      this.socket.emit('leaveChannel', {channelId: this.selectedChannelId, username: this.loggedInUser.username});
     }
     this.socket.disconnect();
   }

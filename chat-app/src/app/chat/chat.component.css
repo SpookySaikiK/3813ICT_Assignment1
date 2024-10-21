@@ -49,15 +49,25 @@ ul {
 
 .message {
     display: flex;
-    align-items: center;
     margin-bottom: 10px;
 }
 
+.message-image {
+    max-width: 100%;
+    max-height: 150px;
+    border-radius: 5px;
+    margin-right: 5px;
+    object-fit: cover;
+}
+
+
 .username{
+    padding-top: 1px;
     padding-right: 5px;
 }
 
 .messageText{
+    padding-top: 1px;
     padding-right: 5px;
 
 }
@@ -272,4 +282,8 @@ button:hover {
     height: 30px;
     border-radius: 50%;
     margin-right: 10px;
+}
+
+.uploadImage{
+    margin-bottom: 5px;
 }

@@ -45,12 +45,23 @@
                     <img [src]="message.avatar" alt="Avatar" class="avatar" />
                     <strong class="username">{{ message.username }}:</strong>
                     <span class="messageText">{{ message.text }} </span>
+                    <div *ngIf="message.image">
+                        <img [src]="message.image" alt="Image" class="message-image" />
+                    </div>
                     <small class="timestamp">{{ message.timestamp | date: 'short' }}</small>
                 </div>
-                
             </div>
+
+            <!-- Send Image -->
+            <div class="uploadImage">
+                <input type="file" id="fileInput" (change)="onFileSelected($event)" accept="image/*">
+                <button (click)="sendImage()">Send Image</button>
+            </div>
+
+            <!-- Send Message -->
             <input type="text" [(ngModel)]="newMessage" placeholder="Type a message..." (keyup.enter)="sendMessage()">
             <button (click)="sendMessage()">Send</button>
+
         </div>
         <button *ngIf="windowLoaded() && selectedGroupId !== null && isGroupAdmin(selectedGroupId)"
             (click)="showManageMembersModal()" class="manage-button">
