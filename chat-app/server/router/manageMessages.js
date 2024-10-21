@@ -5,12 +5,13 @@ const { Server } = require('socket.io');
 
 //Send message route
 router.post('/send', async (req, res) => {
-    const { channelId, username, text } = req.body;
+    const { channelId, username, avatar, text } = req.body;
     const db = getDb();
 
     const newMessage = {
         channelId,
         username,
+        avatar,
         text,
         timestamp: new Date()
     };

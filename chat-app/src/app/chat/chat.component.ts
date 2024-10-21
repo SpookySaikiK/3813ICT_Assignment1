@@ -18,8 +18,9 @@ export class ChatComponent implements OnInit {
   allGroups: { id: number; name: string; ownerName: string; admins: number[]; members: number[] }[] = [];
   channels: { id: number, name: string, groupId: number }[] = [];
 
-  messages: { channelId: number, username: string, text: string, timestamp: string }[] = [];
-  filteredMessages: { channelId: number, username: string, text: string, timestamp: string }[] = [];
+  messages: { channelId: number, username: string, text: string, avatar: string, timestamp: string }[] = [];
+  filteredMessages: { channelId: number, username: string, text: string, avatar: string, timestamp: string }[] = [];
+
   newMessage: string = '';
 
   newGroupName: string = '';
@@ -117,7 +118,7 @@ export class ChatComponent implements OnInit {
   loadMessages(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this.selectedChannelId !== null) {
-        this.http.get<{ channelId: number, username: string, text: string, timestamp: string }[]>(`http://localhost:3000/manageMessages/${this.selectedChannelId}`)
+        this.http.get<{ channelId: number, username: string, text: string, avatar: string, timestamp: string }[]>(`http://localhost:3000/manageMessages/${this.selectedChannelId}`)
           .subscribe({
             next: (data) => {
               this.filteredMessages = data;
@@ -130,10 +131,11 @@ export class ChatComponent implements OnInit {
             }
           });
       } else {
-        resolve(); //If no channel is selected, resolve immediately
+        resolve(); //If no channel is selected, resolve
       }
     });
   }
+
 
 
 
@@ -190,7 +192,8 @@ export class ChatComponent implements OnInit {
       const messageData = {
         channelId: this.selectedChannelId,
         username: this.loggedInUser.username,
-        text: this.newMessage.trim(),
+        avatar: 'http://localhost:3000/' + this.loggedInUser.avatar,
+        text: " " + this.newMessage.trim(),
         timestamp: new Date().toISOString()
       };
 

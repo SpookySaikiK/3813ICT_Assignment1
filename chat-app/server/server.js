@@ -72,6 +72,7 @@ io.on('connection', (socket) => {
         const joinMessage = {
             text: 'User has entered the channel',
             username: 'System',
+            avatar: "http://localhost:3000/uploads/avatar/system-avatar.png",
             timestamp: new Date(),
             channelId: channelId
         };
@@ -106,6 +107,7 @@ io.on('connection', (socket) => {
         const leaveMessage = {
             text: 'User has left the channel',
             username: 'System',
+            avatar: "http://localhost:3000/uploads/avatar/system-avatar.png",
             timestamp: new Date(),
             channelId: channelId
         };

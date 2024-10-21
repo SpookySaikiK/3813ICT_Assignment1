@@ -48,7 +48,18 @@ ul {
 }
 
 .message {
+    display: flex;
+    align-items: center;
     margin-bottom: 10px;
+}
+
+.username{
+    padding-right: 5px;
+}
+
+.messageText{
+    padding-right: 5px;
+
 }
 
 input[type="text"] {
@@ -217,41 +228,48 @@ button:hover {
     transition: background-color 0.3s ease;
 }
 
-.approve-reject-buttons{
+.approve-reject-buttons {
     display: flex;
     justify-content: space-evenly;
     margin-top: 10px;
     margin-bottom: 20px;
-    
+
 }
 
-.approve{
+.approve {
     background-color: rgb(54, 184, 54);
 }
 
-.reject{
+.reject {
     background-color: rgb(207, 64, 64);
 }
 
-.approve :hover{
+.approve :hover {
     background-color: rgb(28, 138, 28);
 }
 
-.reject :hover{
+.reject :hover {
     background-color: rgb(161, 36, 36);
 }
 
-.manage-row{
+.manage-row {
     display: flex;
     flex-direction: row;
     justify-content: space-around;
 }
 
-.manage-row .div{
+.manage-row .div {
     width: 500px;
 }
 
 .timestamp {
     font-size: 10px;
-    color: gray; 
-  }
+    color: gray;
+}
+
+.avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 10px;
+}

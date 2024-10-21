@@ -42,10 +42,12 @@
             <p>Currently chatting in channel ID: {{ selectedChannelId }}</p>
             <div id="messagesContainer" class="messages">
                 <div *ngFor="let message of filteredMessages" class="message">
-                    <strong>{{ message.username }}: </strong>
-                    <span>{{ message.text }} </span>
+                    <img [src]="message.avatar" alt="Avatar" class="avatar" />
+                    <strong class="username">{{ message.username }}:</strong>
+                    <span class="messageText">{{ message.text }} </span>
                     <small class="timestamp">{{ message.timestamp | date: 'short' }}</small>
                 </div>
+                
             </div>
             <input type="text" [(ngModel)]="newMessage" placeholder="Type a message..." (keyup.enter)="sendMessage()">
             <button (click)="sendMessage()">Send</button>
