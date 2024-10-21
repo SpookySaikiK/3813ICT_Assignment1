@@ -7,7 +7,8 @@
     "roles": [
       "superAdmin"
     ],
-    "groups": []
+    "groups": [],
+    "avatar": "uploads/avatar/default-avatar.png"
   },
   {
     "id": 2,
@@ -17,7 +18,8 @@
     "roles": [
       "groupAdmin"
     ],
-    "groups": []
+    "groups": [],
+    "avatar": "uploads/avatar/default-avatar.png"
   },
   {
     "id": 3,
@@ -27,6 +29,7 @@
     "roles": [
       "user"
     ],
-    "groups": []
+    "groups": [],
+    "avatar": "uploads/avatar/default-avatar.png"
   }
 ]

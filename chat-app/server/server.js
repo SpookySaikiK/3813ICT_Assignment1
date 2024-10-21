@@ -12,6 +12,8 @@ const manageGroupRouter = require('./router/manageGroup');
 const manageChannelRouter = require('./router/manageChannel');
 const manageRequestsRouter = require('./router/manageRequests');
 const manageMessagesRouter = require('./router/manageMessages');
+const uploadAvatarRouter = require('./router/uploadAvatar');
+
 
 const PORT = 3000;
 const app = express();
@@ -53,6 +55,10 @@ app.use('/manageRequests', manageRequestsRouter);
 
 //Messages Routes
 app.use('/manageMessages', manageMessagesRouter);
+
+//Avatar
+app.use('/uploadAvatar', uploadAvatarRouter);
+app.use('/uploads', express.static('uploads'));
 
 
 //Socket connection handling

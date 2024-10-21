@@ -35,7 +35,8 @@ router.post('/', (req, res) => {
         email,
         password, 
         roles: ['user'], 
-        groups: []
+        groups: [],
+        avatar: "uploads/avatar/default-avatar.png"
     };
     
     users.push(newUser);

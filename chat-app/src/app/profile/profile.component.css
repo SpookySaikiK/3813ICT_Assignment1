@@ -1,8 +1,9 @@
 div {
     display: flex;
+    align-items: center;
     flex-direction: column;
-    max-width: 400px;
-    margin: 50px auto;
+    max-width: 450px;
+    margin: 15px auto;
     padding: 20px;
     background-color: #e4e4e4;
     border-radius: 10px;
@@ -17,10 +18,14 @@ h2 {
 
 p {
     font-size: 17px;
-    margin-bottom: 10px;
+    margin-left: 20px;
+    text-align: left;
+
 }
 
 button {
+    display: flex;
+    align-items: center;
     padding: 10px 20px;
     font-size: 18px;
     background-color: #0266c9;
@@ -28,7 +33,6 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    margin-top: 20px;
 }
 
 button:hover {
@@ -43,3 +47,51 @@ button:hover {
     background-color: darkred;
 
 }
+
+.uploadDiv {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 450px;
+    margin: 8px auto;
+    padding: 15px; 
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ddd;
+}
+
+.uploadDiv input[type="file"] {
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    flex: 2;
+    margin-right: 10px;
+}
+
+.avatar-img {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.rowDiv{
+    all: unset;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.collumnDiv {
+    all: unset;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+}
+

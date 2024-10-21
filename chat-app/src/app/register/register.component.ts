@@ -44,11 +44,10 @@ export class RegisterComponent implements OnInit {
       password: this.password
     };
 
-    this.http.post<{ message: string }>(this.apiUrl, newUser).subscribe({
+    this.http.post<{ id: number, username: string, email: string, roles: string[], avatar: string, message: string }>(this.apiUrl, newUser).subscribe({
       next: (response) => {
-        alert(response.message); //Show success message from backend
-        localStorage.setItem('loggedInUser', JSON.stringify(newUser)); //Store user data in local storage
-        this.router.navigateByUrl('/profile'); //Navigate to profile page
+        alert(response.message);
+        this.router.navigateByUrl('/profile');
       },
       error: (error) => {
         if (error.status === 400) {

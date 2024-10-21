@@ -1,8 +1,26 @@
 <div *ngIf="loggedInUser">
+
     <h2>Hello, {{loggedInUser.username}}!</h2>
-    <p>Email: {{loggedInUser.email}}</p>
-    <p>ID: {{loggedInUser.id}}</p>
-    <p>Roles: {{loggedInUser.roles}}</p>
-    <button (click)="logout()">Logout</button>
-    <button (click)="deleteAccount()" class="delete-button">Delete Account</button>
+    <div class="rowDiv">
+        <!-- Display Avatar -->
+        <img [src]="avatarUrl" alt="Avatar" class="avatar-img" />
+
+        <div class="collumnDiv">
+            <p>Email: {{loggedInUser.email}}</p>
+            <p>Roles: {{loggedInUser.roles}}</p>
+            <p>ID: {{loggedInUser.id}}</p>
+        </div>
+    </div>
+
+    <!-- Upload Avatar -->
+    <div class="uploadDiv">
+        <input type="file" (change)="onFileSelected($event)" />
+        <button (click)="uploadAvatar()">Change Avatar</button>
+    </div>
+
+    <!-- Logout and Delete Account Buttons -->
+    <div class="uploadDiv">
+        <button (click)="logout()">Logout</button>
+        <button (click)="deleteAccount()" class="delete-button">Delete Account</button>
+    </div>
 </div>
