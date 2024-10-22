@@ -27,6 +27,16 @@ export class RegisterComponent implements OnInit {
       }
     }
   }
+  //Method to clear the form fields
+  clearForm(): void {
+    this.username = '';
+    this.email = '';
+    this.password = '';
+  }
+
+  resetForm(): void {
+    this.clearForm();
+  }
 
   registerUser() {
     if (!this.username || !this.email || !this.password) {

@@ -28,6 +28,10 @@ export class LoginComponent implements OnInit {
   }
 
   loginUser(): void {
+    if (!this.username || !this.password) {
+      alert('Both username and password are required!');
+      return;
+    }
     const userCredentials = { username: this.username, password: this.password };
 
     this.http.post<{ message: string; username: string; useremail: string; usergroup: string; userrole: string }>(
@@ -49,6 +53,7 @@ export class LoginComponent implements OnInit {
         } else {
           alert('An error occurred during login. Please try again.');
         }
+        this.password = '';
       }
     });
   }

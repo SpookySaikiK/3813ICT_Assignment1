@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "jasmine-expect": "^5.0.0"
+  }
+}

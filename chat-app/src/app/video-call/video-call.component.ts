@@ -12,11 +12,11 @@ import Peer from 'peerjs';
 })
 
 export class VideoCallComponent implements OnInit, OnDestroy {
-  private peer: Peer | null = null;
+  peer: Peer | null = null;
   public peerId: string | null = null;
-  private localStream: MediaStream | null = null;
-  private currentCall: any = null;
-  private screenStream: MediaStream | null = null;
+  localStream: MediaStream | null = null;
+  currentCall: any = null;
+  screenStream: MediaStream | null = null;
 
   //Bind to video elements in the template
   @ViewChild('localVideo') localVideoRef!: ElementRef<HTMLVideoElement>;
