@@ -104,13 +104,13 @@ router.post('/leave', (req, res) => {
 router.post('/addMember', (req, res) => {
     const { groupId, username } = req.body;
 
-    console.log('Received request to add member:', { groupId, username });
+    //console.log('Received request to add member:', { groupId, username });
 
     const groups = loadGroups();
     const group = groups.find(g => g.id == groupId);
 
     if (!group) {
-        console.log(`Group not found: ${groupId}`);
+        //console.log(`Group not found: ${groupId}`);
         return res.status(404).send({ message: 'Group not found' });
     }
 
@@ -118,19 +118,19 @@ router.post('/addMember', (req, res) => {
     const user = users.find(u => u.username === username);
 
     if (!user) {
-        console.log(`No such user exists: ${username}`);
+        //console.log(`No such user exists: ${username}`);
         return res.status(404).send({ message: 'No such user exists' });
     }
 
-    console.log(`User ${username} found with ID: ${user.id}`);
+    //console.log(`User ${username} found with ID: ${user.id}`);
 
     if (!group.members.includes(user.id)) {
         group.members.push(user.id); 
         saveGroups(groups);
-        console.log(`User ${username} added to group ${groupId}`);
+        //console.log(`User ${username} added to group ${groupId}`);
         return res.status(200).send({ message: 'User added to group successfully' });
     } else {
-        console.log(`User ${username} is already a member of group ${groupId}`);
+        //console.log(`User ${username} is already a member of group ${groupId}`);
         return res.status(400).send({ message: 'User is already a member of this group' });
     }
 });
@@ -139,13 +139,13 @@ router.post('/addMember', (req, res) => {
 router.post('/removeMember', (req, res) => {
     const { groupId, username } = req.body;
 
-    console.log('Received request to remove member:', { groupId, username });
+    //console.log('Received request to remove member:', { groupId, username });
 
     const groups = loadGroups();
     const group = groups.find(g => g.id == groupId);
 
     if (!group) {
-        console.log(`Group not found: ${groupId}`);
+        //console.log(`Group not found: ${groupId}`);
         return res.status(404).send({ message: 'Group not found' });
     }
 
@@ -153,19 +153,19 @@ router.post('/removeMember', (req, res) => {
     const user = users.find(u => u.username === username);
 
     if (!user) {
-        console.log(`No such user exists: ${username}`);
+        //console.log(`No such user exists: ${username}`);
         return res.status(404).send({ message: 'No such user exists' });
     }
 
-    console.log(`User ${username} found with ID: ${user.id}`);
+    //console.log(`User ${username} found with ID: ${user.id}`);
 
     if (group.members.includes(user.id)) {
         group.members = group.members.filter(memberId => memberId !== user.id);
         saveGroups(groups); //Save the updated groups back to the JSON file
-        console.log(`User ${username} removed from group ${groupId}`);
+        //console.log(`User ${username} removed from group ${groupId}`);
         return res.status(200).send({ message: 'User removed from group successfully' });
     } else {
-        console.log(`User ${username} is not a member of group ${groupId}`);
+        //console.log(`User ${username} is not a member of group ${groupId}`);
         return res.status(400).send({ message: 'User is not a member of this group' });
     }
 });
@@ -174,23 +174,23 @@ router.post('/removeMember', (req, res) => {
 router.post('/promote', (req, res) => {
     const { username, role } = req.body;
 
-    console.log('Received request to promote user:', { username, role });
+    //console.log('Received request to promote user:', { username, role });
 
     const users = loadUsers(); 
     const user = users.find(u => u.username === username);
 
     if (!user) {
-        console.log(`No such user exists: ${username}`); 
+        //console.log(`No such user exists: ${username}`); 
         return res.status(404).send({ message: 'No such user exists' });
     }
 
     //Check if the role is valid
     if (role === 'superAdmin' && !user.roles.includes('superAdmin')) {
         user.roles.push('superAdmin'); //Promote to superAdmin
-        console.log(`User ${username} promoted to Super Admin`); 
+        //console.log(`User ${username} promoted to Super Admin`); 
     } else if (role === 'groupAdmin' && !user.roles.includes('groupAdmin')) {
         user.roles.push('groupAdmin'); //Promote to groupAdmin
-        console.log(`User ${username} promoted to Group Admin`);
+        //console.log(`User ${username} promoted to Group Admin`);
     } else {
         return res.status(400).send({ message: `${username} is already a ${role}.` });
     }

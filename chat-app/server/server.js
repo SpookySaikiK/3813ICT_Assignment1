@@ -145,6 +145,8 @@ io.on('connection', (socket) => {
     });
 });
 
+module.exports = server;
+
 
 //Start server
 server.listen(PORT, () => {

@@ -7,6 +7,10 @@ router.post('/create', async (req, res) => {
     const { name, groupId } = req.body;
     const db = getDb();
 
+    if (!name || !groupId) {
+        return res.status(500).json({ message: 'Error creating channel. Name and groupId are required.' });
+    }
+
     try {
         const channels = await db.collection('channels').find().toArray();
 

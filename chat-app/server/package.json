@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --recursive",
+    "coverage": "nyc --reporter=text mocha --recursive"
   },
   "keywords": [],
   "author": "",
@@ -16,5 +17,12 @@
     "multer": "^1.4.5-lts.1",
     "peer": "^1.0.2",
     "socket.io": "^4.8.0"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
+    "mocha": "^10.7.3",
+    "nyc": "^17.1.0",
+    "supertest": "^7.0.0"
   }
 }

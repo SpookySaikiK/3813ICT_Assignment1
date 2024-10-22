@@ -69,29 +69,27 @@ router.post('/request', (req, res) => {
 
 //Route to approve a request
 router.post('/approve', (req, res) => {
-    console.log('Approve request received:', req.body); 
+    //console.log('Approve request received:', req.body); 
 
     const { groupId, username } = req.body;
     const requests = loadRequests();
     const groups = loadGroups();
-    const users = loadUsers(); 
+    const users = loadUsers();
 
     //Find the group based on the groupId
     const group = groups.find(g => g.id == groupId);
-    console.log('Group found:', group);
-
-    //Find the request
-    const requestIndex = requests.findIndex(r => r.username === username && r.groupId === groupId);
-    console.log('Request index:', requestIndex);
-
-    if (requestIndex === -1) {
-        return res.status(404).send({ message: 'Request not found' });
-    }
+    //console.log('Group found:', group);
 
     //Check if user exists
     const user = users.find(u => u.username === username);
-    console.log('User found:', user); 
+    //console.log('User found:', user); 
 
+    //Find the request
+    const requestIndex = requests.findIndex(r => r.username === username && r.groupId === groupId);
+    //console.log('Request index:', requestIndex);
+    if (requestIndex === -1) {
+        return res.status(404).send({ message: 'Request not found' });
+    }
     if (!user) {
         return res.status(404).send({ message: 'No such user exists' });
     }
@@ -99,14 +97,14 @@ router.post('/approve', (req, res) => {
     //Add user ID to group members or admins based on the request reason
     const request = requests[requestIndex];
     if (request.reason === 'has requested to join the group') {
-        if (group && !group.members.includes(user.id)) { 
-            group.members.push(user.id); 
+        if (group && !group.members.includes(user.id)) {
+            group.members.push(user.id);
             saveGroups(groups);
         }
     } else if (request.reason === 'has requested admin rights for this group') {
         if (group && !group.admins.includes(user.id)) {
-            group.admins.push(user.id); 
-            saveGroups(groups); 
+            group.admins.push(user.id);
+            saveGroups(groups);
         }
     }
 
