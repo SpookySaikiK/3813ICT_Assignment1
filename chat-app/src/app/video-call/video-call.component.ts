@@ -16,6 +16,7 @@ export class VideoCallComponent implements OnInit, OnDestroy {
   public peerId: string | null = null;
   private localStream: MediaStream | null = null;
   private currentCall: any = null;
+  private screenStream: MediaStream | null = null;
 
   //Bind to video elements in the template
   @ViewChild('localVideo') localVideoRef!: ElementRef<HTMLVideoElement>;
@@ -84,17 +85,62 @@ export class VideoCallComponent implements OnInit, OnDestroy {
 
   //Make a call to another peer using their Peer ID
   callPeer(remotePeerId: string): void {
-    if (!this.localStream) {
-      console.error('No local stream available for calling.');
+    const stream = this.screenStream || this.localStream;
+    if (!stream) {
+      console.error('No stream available for calling.');
       return;
     }
-
-    const call = this.peer!.call(remotePeerId, this.localStream);
+  
+    const call = this.peer!.call(remotePeerId, stream);
     call.on('stream', (remoteStream: MediaStream) => {
       this.remoteVideoElement!.srcObject = remoteStream;
     });
     this.currentCall = call;
   }
+
+  startScreenShare(): void {
+    navigator.mediaDevices.getDisplayMedia({ video: true }).then(screenStream => {
+      this.screenStream = screenStream;
+      this.localVideoElement!.srcObject = screenStream;
+  
+      //Replace the current call
+      if (this.currentCall) {
+        const sender = this.currentCall.peerConnection.getSenders().find((s: RTCRtpSender) => s.track?.kind === 'video');
+        if (sender) {
+          sender.replaceTrack(screenStream.getTracks()[0]);
+        }
+      }
+  
+      //Stop screen share when the user stops sharing
+      screenStream.getVideoTracks()[0].onended = () => {
+        this.stopScreenShare();
+      };
+    }).catch(err => {
+      console.error('Failed to get display media:', err);
+    });
+  }
+  
+
+  //Stop screen sharing
+  stopScreenShare(): void {
+    if (this.screenStream) {
+      this.screenStream.getTracks().forEach(track => track.stop());
+      this.screenStream = null;
+  
+      if (this.localStream) {
+        this.localVideoElement!.srcObject = this.localStream;
+        
+        //Replace the screen share with the local video
+        if (this.currentCall) {
+          const sender = this.currentCall.peerConnection.getSenders().find((s: RTCRtpSender) => s.track?.kind === 'video');
+          if (sender) {
+            sender.replaceTrack(this.localStream.getVideoTracks()[0]);
+          }
+        }
+      }
+    }
+  }
+  
 
   //End the current call
   endCall(): void {

@@ -22,6 +22,8 @@
     <div class="callControls">
         <input #remotePeerIdInput type="text" placeholder="Enter Peer ID to call" />
         <button class="callBtn" (click)="callPeer(remotePeerIdInput.value)">Call</button>
+        <button (click)="startScreenShare()">Share Screen</button>
+        <button (click)="stopScreenShare()">Stop Sharing</button>
         <button class="endBtn" (click)="endCall()">End Call</button>
     </div>
 </div>
