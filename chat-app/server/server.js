@@ -3,6 +3,7 @@ const cors = require('cors');
 const http = require('http');
 const { connectToDatabase, getDb } = require('./db');
 const { Server } = require('socket.io');
+const { ExpressPeerServer } = require('peer');
 
 //Routes
 const registerUserRouter = require('./router/registerUser');
@@ -14,7 +15,6 @@ const manageRequestsRouter = require('./router/manageRequests');
 const manageMessagesRouter = require('./router/manageMessages');
 const uploadAvatarRouter = require('./router/uploadAvatar');
 const imageUploadRouter = require('./router/imageUpload');
-
 
 const PORT = 3000;
 const app = express();
@@ -33,6 +33,12 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
+
+const peerServer = ExpressPeerServer(server, {
+    debug: true,
+    path: '/'
+});
+
 
 //Connect to MongoDB
 connectToDatabase().catch(console.error);
@@ -63,6 +69,8 @@ app.use('/uploads', express.static('uploads'));
 
 app.use('/uploadImage', imageUploadRouter);
 
+//PeerServer
+app.use('/peerjs', peerServer);
 
 //Socket connection handling
 io.on('connection', (socket) => {

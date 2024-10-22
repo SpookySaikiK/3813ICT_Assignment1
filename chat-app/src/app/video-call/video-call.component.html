@@ -1,0 +1,27 @@
+<div class="videoCallBox">
+    <h2>Video Call</h2>
+
+    <!-- Display Peer ID -->
+    <div class="peerIdContainer" *ngIf="peerId">
+        <p>Your Peer ID: <span class="peerId">{{ peerId }}</span></p>
+    </div>
+
+    <!-- Video Streams -->
+    <div class="videoContainer">
+        <div class="videoBox">
+            <p>Local Video</p>
+            <video #localVideo class="video" autoplay muted></video>
+        </div>
+        <div class="videoBox">
+            <p>Remote Video</p>
+            <video #remoteVideo class="video" autoplay></video>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="callControls">
+        <input #remotePeerIdInput type="text" placeholder="Enter Peer ID to call" />
+        <button class="callBtn" (click)="callPeer(remotePeerIdInput.value)">Call</button>
+        <button class="endBtn" (click)="endCall()">End Call</button>
+    </div>
+</div>

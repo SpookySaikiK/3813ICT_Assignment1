@@ -1,0 +1,84 @@
+.videoCallBox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 900px;
+    margin: 1px auto;
+    padding: 20px;
+    background-color: #e4e4e4;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+    text-align: center;
+}
+
+h2 {
+    color: darkslategray;
+}
+
+.peerId {
+    font-weight: bold;
+    color: #0266c9;
+}
+
+.videoContainer {
+    display: flex;
+    justify-content: space-evenly;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.videoBox {
+    width: 45%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.video {
+    width: 100%;
+    height: auto;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    background-color: black;
+}
+
+.callControls {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+}
+
+input[type="text"] {
+    padding: 10px;
+    font-size: 16px;
+    flex: 1;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+}
+
+button {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #0266c9;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0250a1;
+}
+
+button.endBtn {
+    background-color: #e74c3c;
+}
+
+button.endBtn:hover {
+    background-color: darkred;
+}
