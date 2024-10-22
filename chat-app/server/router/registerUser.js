@@ -1,6 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const bcrypt = require('bcrypt');
 const router = express.Router();
 const usersFilePath = path.join(__dirname, '../data/users.json');
 
@@ -18,7 +19,7 @@ const saveUsers = (data) => {
 };
 
 //Register User Route
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
     const { username, password, email } = req.body;
     const users = loadUsers();
 
@@ -28,20 +29,27 @@ router.post('/', (req, res) => {
         return res.status(400).send({ message: 'User already exists' });
     }
 
-    //Create new user
-    const newUser = {
-        id: users.length + 1,
-        username,
-        email,
-        password, 
-        roles: ['user'], 
-        groups: [],
-        avatar: "uploads/avatar/default-avatar.png"
-    };
-    
-    users.push(newUser);
-    saveUsers(users);
-    return res.status(201).send({ message: 'User created successfully' });
+    try {
+        //Hash the password before saving it
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        //Create new user
+        const newUser = {
+            id: users.length + 1,
+            username,
+            email,
+            password: hashedPassword,
+            roles: ['user'],
+            groups: [],
+            avatar: "uploads/avatar/default-avatar.png"
+        };
+
+        users.push(newUser);
+        saveUsers(users);
+        return res.status(201).send({ message: 'User created successfully' });
+    } catch (error) {
+        return res.status(500).send({ message: 'Error registering user' });
+    }
 });
 
 module.exports = router;

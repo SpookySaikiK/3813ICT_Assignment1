@@ -3,7 +3,7 @@
     "id": 1,
     "username": "super",
     "email": "super@admin.com",
-    "password": "123",
+    "password": "$2b$12$XJvXOKPWSuPai6LwAGVSJu6YBf5DHraNV3M8XQyHJnfoCzWyVF7le",
     "roles": [
       "superAdmin"
     ],
@@ -14,7 +14,7 @@
     "id": 2,
     "username": "groupAdmin",
     "email": "group@admin.com",
-    "password": "123",
+    "password": "$2b$12$FZFGjQ/jpv3d0EFq6jZrSuU.ocZjxE1M35HXxAF7.FLIPzkdDFm2C",
     "roles": [
       "groupAdmin"
     ],
@@ -25,7 +25,7 @@
     "id": 3,
     "username": "user",
     "email": "user@admin.com",
-    "password": "123",
+    "password": "$2b$12$G86.jl6T7qNfBOYMVFydbuT84BFa.Y41ygWpl5z4VScjqE.b2Qye6",
     "roles": [
       "user"
     ],

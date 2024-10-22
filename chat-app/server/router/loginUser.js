@@ -1,6 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const bcrypt = require('bcrypt');
 const router = express.Router();
 const usersFilePath = path.join(__dirname, '../data/users.json');
 
@@ -13,7 +14,7 @@ const loadUsers = () => {
 };
 
 //User Login Route
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
     const { username, password } = req.body;
     const users = loadUsers();
     
@@ -23,14 +24,15 @@ router.post('/', (req, res) => {
         return res.status(404).send({ message: 'User not found' });
     }
 
-    //Check password
-    if (user.password !== password) {
+    //Compare the password using bcrypt
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    if (!isPasswordMatch) {
         return res.status(401).send({ message: 'Invalid password' });
     }
 
-    //Successful login, return user info
+    //Successful login, return user info without the password
     const { password: pwd, ...userWithoutPassword } = user;
-    return res.status(200).json(userWithoutPassword); //Return user data without the password
+    return res.status(200).json(userWithoutPassword);
 });
 
 module.exports = router;
