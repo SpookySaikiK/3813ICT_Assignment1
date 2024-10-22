@@ -1,6 +1,9 @@
-<div *ngIf="loggedInUser">
+<div *ngIf="loggedInUser" class="profileDiv">
 
-    <h2>Hello, {{loggedInUser.username}}!</h2>
+    <div class="rowDiv">
+        <h2>Hello, {{loggedInUser.username}}!</h2>
+        <button (click)="toggleTheme()" class="toggleThemeButton">{{ loggedInUser.theme === 'light' ? '🌙' : '🌞' }}</button>
+    </div>
     <div class="rowDiv">
         <!-- Display Avatar -->
         <img [src]="avatarUrl" alt="Avatar" class="avatar-img" />
@@ -20,7 +23,7 @@
 
     <!-- Logout and Delete Account Buttons -->
     <div class="uploadDiv">
-        <button (click)="logout()">Logout</button>
+        <button (click)="logout()" class="logoutButton">Logout</button>
         <button (click)="deleteAccount()" class="delete-button">Delete Account</button>
     </div>
 </div>

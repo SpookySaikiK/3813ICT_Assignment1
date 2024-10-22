@@ -15,6 +15,7 @@ const manageRequestsRouter = require('./router/manageRequests');
 const manageMessagesRouter = require('./router/manageMessages');
 const uploadAvatarRouter = require('./router/uploadAvatar');
 const imageUploadRouter = require('./router/imageUpload');
+const updateUserThemeRouter = require('./router/updateUserTheme');
 
 const PORT = 3000;
 const app = express();
@@ -71,6 +72,10 @@ app.use('/uploadImage', imageUploadRouter);
 
 //PeerServer
 app.use('/peerjs', peerServer);
+
+//update theme route
+app.use('/updateUserTheme', updateUserThemeRouter);
+
 
 //Socket connection handling
 io.on('connection', (socket) => {

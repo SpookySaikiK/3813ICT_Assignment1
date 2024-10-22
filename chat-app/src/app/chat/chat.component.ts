@@ -187,7 +187,7 @@ export class ChatComponent implements OnInit {
     this.loadMessages()
       .then(() => {
         this.socket.emit('joinChannel', {channelId: this.selectedChannelId, username: this.loggedInUser.username});
-        setTimeout(() => {this.scrollToBottom()}, 50);
+        setTimeout(() => {this.scrollToBottom()}, 100);
       })
       .catch((error: any) => {
         console.error('Failed to load messages:', error);
@@ -248,7 +248,7 @@ export class ChatComponent implements OnInit {
               fileInput.value = '';
             }
 
-            setTimeout(() => this.scrollToBottom(), 50);
+            setTimeout(() => this.scrollToBottom(), 100);
           },
           error: (error) => {
             console.error('Error sending image:', error);

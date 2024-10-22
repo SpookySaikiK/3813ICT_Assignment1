@@ -59,26 +59,31 @@
             </div>
 
             <!-- Send Message -->
-            <input type="text" [(ngModel)]="newMessage" placeholder="Type a message..." (keyup.enter)="sendMessage()">
+            <input type="text" [(ngModel)]="newMessage" placeholder="Type a message..." (keyup.enter)="sendMessage()" class="inputMessage">
             <button (click)="sendMessage()">Send</button>
 
         </div>
-        <button *ngIf="windowLoaded() && selectedGroupId !== null && isGroupAdmin(selectedGroupId)"
-            (click)="showManageMembersModal()" class="manage-button">
-            Manage Members
-        </button>
-        <button
-            *ngIf="windowLoaded() && selectedGroupId !== null && selectedChannelId !== null && isGroupAdmin(selectedGroupId)"
-            (click)="showBanUserModal()" class="manage-button">
-            Ban User
-        </button>
-        <button
-            *ngIf="windowLoaded() && selectedGroupId !== null && selectedChannelId !== null && isGroupAdmin(selectedGroupId)"
-            (click)="showBanReportsModal()" class="manage-button">
-            Reports
-        </button>
-        <button *ngIf="windowLoaded() && selectedGroupId !== null && isGroupAdmin(selectedGroupId)"
-            (click)="showViewRequestsModal(selectedGroupId)" class="view-requests-button">View Requests</button>
+        <div class="groupChannelButtons">
+            <button *ngIf="windowLoaded() && selectedGroupId !== null && isGroupAdmin(selectedGroupId)"
+                (click)="showManageMembersModal()" class="manage-button">
+                Manage Members
+            </button>
+            
+            <button *ngIf="windowLoaded() && selectedGroupId !== null && isGroupAdmin(selectedGroupId)"
+                (click)="showViewRequestsModal(selectedGroupId)" class="view-requests-button">View Requests
+            </button>
+            <button
+                *ngIf="windowLoaded() && selectedGroupId !== null && selectedChannelId !== null && isGroupAdmin(selectedGroupId)"
+                (click)="showBanUserModal()" class="manage-button">
+                Ban User
+            </button>
+            <button
+                *ngIf="windowLoaded() && selectedGroupId !== null && selectedChannelId !== null && isGroupAdmin(selectedGroupId)"
+                (click)="showBanReportsModal()" class="manage-button">
+                Reports
+            </button>
+        </div>
+
     </div>
 
     <!-- Create Group Modal -->

@@ -8,7 +8,8 @@
       "superAdmin"
     ],
     "groups": [],
-    "avatar": "uploads/avatar/default-avatar.png"
+    "avatar": "uploads/avatar/default-avatar.png",
+    "theme": "light"
   },
   {
     "id": 2,
@@ -19,7 +20,8 @@
       "groupAdmin"
     ],
     "groups": [],
-    "avatar": "uploads/avatar/default-avatar.png"
+    "avatar": "uploads/avatar/default-avatar.png",
+    "theme": "light"
   },
   {
     "id": 3,
@@ -30,6 +32,7 @@
       "user"
     ],
     "groups": [],
-    "avatar": "uploads/avatar/default-avatar.png"
+    "avatar": "uploads/avatar/default-avatar.png",
+    "theme": "light"
   }
 ]

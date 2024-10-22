@@ -41,7 +41,8 @@ router.post('/', async (req, res) => {
             password: hashedPassword,
             roles: ['user'],
             groups: [],
-            avatar: "uploads/avatar/default-avatar.png"
+            avatar: "uploads/avatar/default-avatar.png",
+            theme: 'light'
         };
 
         users.push(newUser);

@@ -36,12 +36,13 @@ ul {
 .chat-area h3 {
     color: darkslategray;
     margin-bottom: 10px;
+    margin-top: 5px;
 }
 
 .messages {
     height: 50vh;
     overflow-y: auto;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
     padding: 10px;
     border: 1px solid lightgray;
     border-radius: 5px;
@@ -286,4 +287,13 @@ button:hover {
 
 .uploadImage{
     margin-bottom: 5px;
+}
+
+.groupChannelButtons button{
+    margin-top: 5px;
+    margin-right: 5px;
+}
+
+.inputMessage{
+    margin-right: 5px;
 }

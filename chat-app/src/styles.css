@@ -5,3 +5,109 @@ body {
 * {
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
+
+body.dark-mode {
+    background-color: #333333 !important;
+    color: white !important;
+}
+
+body.dark-mode form {
+    background-color: #1d1d1d !important;
+    color: white !important;
+}
+
+body.dark-mode h1, 
+body.dark-mode h2, 
+body.dark-mode h3, 
+body.dark-mode h4, 
+body.dark-mode h5, 
+body.dark-mode h6,
+body.dark-mode p,
+body.dark-mode label {
+    color: white !important;
+}
+
+body.dark-mode .modal-content {
+    background-color: #444 !important;
+    color: white !important;
+}
+
+body.dark-mode .modal {
+    background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+body.dark-mode .videoCallBox {
+    background-color: rgba(19, 19, 19, 0.8) !important;
+}
+
+body.dark-mode .profileDiv {
+    background-color: rgba(19, 19, 19, 0.8) !important;
+}
+
+body.dark-mode .messages {
+    background-color: rgba(31, 31, 31, 0.8) !important;
+}
+
+body.dark-mode .uploadDiv {
+    background-color: rgba(34, 34, 34, 0.8) !important;
+}
+
+body.dark-mode .modal-content-manage {
+    background-color: #444 !important;
+    color: white !important;
+}
+
+body.dark-mode nav {
+    background-color: #000000 !important;
+    color: white !important;
+}
+
+.toggleThemeButton {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 10px;
+    background-color: #131313 !important;
+}
+
+.toggleThemeButton:hover {
+    background-color: #3b3b3b !important;
+}
+
+body.dark-mode button {
+    background-color: #000000 !important;
+}
+body.dark-mode button:hover {
+    background-color: #0c0c0c !important;
+}
+
+body.dark-mode .delete-button {
+    background-color: #2b0000 !important;
+}
+body.dark-mode .delete-button:hover {
+    background-color: #500000 !important;
+}
+
+
+body.dark-mode .toggleThemeButton {
+    background-color: #88dfda !important;
+}
+
+body.dark-mode .toggleThemeButton:hover {
+    background-color: #6bada9 !important;
+}
+
+.profileDiv {
+    position: relative;
+    max-width: 450px;
+    margin: 15px auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+    text-align: center;
+}
+

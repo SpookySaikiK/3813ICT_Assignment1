@@ -43,3 +43,7 @@ button {
 button:hover {
     background-color: #024d8c;
 }
+
+.loginForm{
+    background-color: #f1f1f1;
+}
